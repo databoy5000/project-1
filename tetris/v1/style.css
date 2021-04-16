@@ -1,0 +1,53 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 0;
+}
+
+#grid {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid red;
+  flex-wrap: wrap;
+}
+
+#grid div {
+  width: 10%;
+  height: 5%;
+  border: 1px solid black;
+}
+
+#i-shape {
+  background-color: turquoise
+}
+
+#j-shape {
+  background-color: blue
+}
+
+#j-rev-shape {
+  background-color: orange
+}
+
+#o-shape {
+  background-color: yellow
+}
+
+#s-shape {
+  background-color: green
+}
+
+#s-rev-shape {
+  background-color: red
+}
+
+#t-shape {
+  background-color: purple
+}
