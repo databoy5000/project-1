@@ -24,8 +24,12 @@ body {
   border: 1px solid black;
 }
 
-#i-shape {
-  background-color: turquoise
+.i {
+  background-color: turquoise;
+}
+
+.dead {
+  background-color: black;
 }
 
 #j-shape {
