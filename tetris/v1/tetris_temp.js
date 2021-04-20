@@ -22,6 +22,23 @@ let isDropCheck = false
 
 // ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
 // ! Global functions
+// function downwardCollisionCheck() {
+//   return currentRotation.some( (cellIndex) => {
+//     switch (true) {
+//       case movementType === movements[1]: return (cellIndex % width === 0) || cells[cellIndex - 1].classList.contains('dead')
+//       case movementType === movements[2]: return (cellIndex % width === width - 1) || cells[cellIndex + 1].classList.contains('dead')
+//     }
+//   })
+// }
+
+// function sidewayCollisionCheck() {}
+
+function removeCurrentClass() {
+  return currentRotation.forEach( (cellIndex) => {
+    cells[cellIndex].removeAttribute('class')
+  })
+}
+
 function moveShape(movementType,isRotation = false) {
 
   console.log('moveShape() / movementType is: ' + movementType)
@@ -114,40 +131,238 @@ function dropCheck(movementType) {
   }
 }
 
+function isSidesCollision() {
+  if ( (currentShape.currentReferenceIndex % width < currentShape.leftBoundaryReferenceRemainder) ||
+  (currentShape.currentReferenceIndex % width < currentShape.rightBoundaryReferenceRemainder) ) {
+    return true
+  }
+}
+
+function evaluateConditions(array) {
+  const booleanArray = []
+  array.forEach( (element) => {
+    if (element) {
+      booleanArray.push(element)
+    }
+  })
+  if (booleanArray.length === 1) {
+    return true
+  } else {
+    return false
+  }
+}
+
 function rotationBoundaryCheck() {
 
-  let predictiveRotationIndex
+  let predictiveRotationIndex // outputs which rotation
+  let predictiveRotation // outputs the chosen rotation index
 
   if (currentShape.currentRotationIndex >= (currentShape.allRotations().length - 1)) {
     predictiveRotationIndex = 0
-    predictiveRotation = currentShape.rotationsArray(currentShape.predictiveRotationIndex)
+    predictiveRotation = currentShape.rotationsArray(predictiveRotationIndex)
   } else {
     predictiveRotationIndex = currentShape.currentRotationIndex + 1
-    predictiveRotation = currentShape.rotationsArray(currentShape.predictiveRotationIndex)
+    predictiveRotation = currentShape.rotationsArray(predictiveRotationIndex)
   }
 
+  const isTopCollision = predictiveRotation.some( (cellIndex) => {
+    return (cellIndex < 0)
+  })
 
-  // ! if (currentSide is rightSide or leftSide) {...}
-  // !    if (the next rotation blocks will be out of range) {}
-  if (currentShape.getCurrentSide() === rotationSideArray[0] || currentShape.getCurrentSide() === rotationSideArray[2]) {
+  const isBottomCollision = predictiveRotation.some( (cellIndex) => {
+    return (cellIndex >= width * height)
+  })
+
+  const isCollisionDeadShape = predictiveRotation.some( (cellIndex) => {
+    return cells[cellIndex].classList.contains('dead')
+  })
+
+  const isSidesCollision = isSidesCollision()
+
+  if (isTopCollision) {
+    removeCurrentClass()
+    currentShape.currentReferenceIndex = (currentShape.currentReferenceIndex % width) + (currentShape.topBoundaryReferenceHeight)
+    currentRotation = currentShape.rotationsArray(predictiveRotationIndex)
+  } else if (isBottomCollision) {
+    removeCurrentClass()
+  } else if (isCollisionDeadShape) {
+    removeCurrentClass()
+  } else if (isSidesCollision) {
+    removeCurrentClass()
+  }
+
+}
+
+if (evaluateConditions(
+  [x > y, 1 + 2 === 3, true || false]
+).length >= 2) {
+  // You only get in here if less than 2 conditions are true. 
+} 
+
+function OLD_rotationBoundaryCheck() {
+
+  let predictiveRotationIndex
+  let predictiveRotation
+
+  if (currentShape.currentRotationIndex >= (currentShape.allRotations().length - 1)) {
+    predictiveRotationIndex = 0
+    predictiveRotation = currentShape.rotationsArray(predictiveRotationIndex)
+  } else {
+    predictiveRotationIndex = currentShape.currentRotationIndex + 1
+    predictiveRotation = currentShape.rotationsArray(predictiveRotationIndex)
+  }
+
+  const isSidewayCollision = predictiveRotation.some( (cellIndex) => {
+    const condition = (cellIndex % width < currentShape.leftBoundaryReferenceRemainder) ||
+    (cellIndex % width >= currentShape.rightBoundaryReferenceRemainder)
+    if (condition) {
+      console.log(cellIndex,(cellIndex % width < currentShape.leftBoundaryReferenceRemainder),(cellIndex % width >= currentShape.rightBoundaryReferenceRemainder))
+    }
+    return condition
+  })
+
+  console.log(isSidewayCollision)
+
+
+  // const isCollision = predictiveRotation.some( (cellIndex) => {
+  //   return (cellIndex < 0) || cells[cellIndex - width].classList.contains('dead') ||
+  //   (cellIndex >= width * height) || cells[cellIndex + width].classList.contains('dead') ||
+  //   (cellIndex % width === 0) || cells[cellIndex - 1].classList.contains('dead') ||
+  //   (cellIndex % width === width - 1) || cells[cellIndex + 1].classList.contains('dead')
+  // })
+
+  // const isTopCollision = predictiveRotation.some( (cellIndex) => {
+  //   return (cellIndex < 0) ||
+  //   // switch (true) {
+  //   //   case // : return cellIndex - currentShape.topBoundaryReferenceHeight < 0
+  //   //   default: return cells[cellIndex - width].classList.contains('dead')
+  //   // }
+  //   if (cellIndex - width < 0) {
+  //     return false
+  //   } else {
+  //     return cells[cellIndex - width].classList.contains('dead')
+  //   }
+  // })
+
+  // const isBottomCollision = predictiveRotation.some( (cellIndex) => {
+  //   return (cellIndex >= width * height) ||
+  //   if (cellIndex + width >= width * height) {
+  //     return false
+  //   } else {
+  //     return cells[cellIndex + width].classList.contains('dead')
+  //   }
+    
+    
+  // })
+
+  const isSidewayCollision = predictiveRotation.some( (cellIndex) => {
+    const condition = (cellIndex % width < currentShape.leftBoundaryReferenceRemainder) ||
+    (cellIndex % width >= currentShape.rightBoundaryReferenceRemainder)
+    if (condition) {
+      console.log(cellIndex,(cellIndex % width < currentShape.leftBoundaryReferenceRemainder),(cellIndex % width >= currentShape.rightBoundaryReferenceRemainder))
+    }
+    return condition
+  })
+
+  console.log(isSidewayCollision)
+
+
+  // const mappingCheck = predictiveRotation.map( (cellIndex) => {
+  //   const top = (cellIndex < 0)
+
+  //   switch () {
+  //     case cellIndex - width < 0: return false
+  //     case cellIndex 
+  //   }
+
+  //   const topDead = if (cellIndex - width < 0) {
+  //     return false
+  //     return cells[cellIndex - width].classList.contains('dead')
+  //   }
+    
+    
+    
+  //   const bottom = (cellIndex >= width * height)
+  //   const bottomDead = cells[cellIndex + width].classList.contains('dead')
+  //   const left = cellIndex % width < currentShape.leftBoundaryReferenceRemainder
+  //   const leftDead = cells[cellIndex - 1].classList.contains('dead')
+  //   const right = (cellIndex % width > currentShape.rightBoundaryReferenceRemainder)
+  //   const rightDead = cells[cellIndex + 1].classList.contains('dead')
+  //   return [top,topDead,bottom,bottomDead,left,leftDead,right,rightDead]
+  // })
+
+  // console.log(mappingCheck)
+
+
+  // if (isTopCollision) {
+
+  // } else if (isBottomCollision) {
+
+  // } else if isSidewayCollision {
+
+  // } else {
+  //   removeCurrentClass()
+  //   currentShape.currentRotationIndex = predictiveRotationIndex
+  //   currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+  // }
+
+
+  // !if collition and space to rotate
+  if (isCollision) {
+    // rotate shape but change currentReferenceIndex
+
+    // ! if (top boundary collision) {referenceIndex = acceptable index at top boundary}
+    // ! else if (bottom boundary collision) {referenceIndex = acceptable index at bottom boundary}
+    // ! else if (left boundary collision) {referenceIndex = acceptable index at left boundary}
+    // ! else if (right boundary collision) {referenceIndex = acceptable index at right boundary}
     if (currentShape.currentReferenceIndex - (currentShape.topBoundaryReferenceHeight) < 0) {
+      removeCurrentClass()
       currentShape.currentReferenceIndex = (currentShape.currentReferenceIndex % width) + (currentShape.topBoundaryReferenceHeight)
-      currentShape.currentRotationIndex = predictiveRotationIndex
-      currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-      //  ! then rotate
+      currentRotation = currentShape.rotationsArray(predictiveRotationIndex)
     } else if ( (currentShape.currentReferenceIndex + currentShape.bottomBoundaryReferenceHeight) >= (width * height) ) {
-      currentShape.currentReferenceIndex += width
-    }
-  //  ! if (currentSide is topSide or bottomSide) {...}
-  // !    if (currentReferenceIndex is too close to left side && rotation activated) {update the reference index}
-  // !    else if (currentReferenceIndex is too close to right side) {update the reference index}
-  } else if (currentShape.getCurrentSide() === rotationSideArray[1] || currentShape.getCurrentSide() === rotationSideArray[3]) {
-    if (currentShape.currentReferenceIndex % width < currentShape.leftBoundaryReferenceRemainder) {
-      currentShape.currentReferenceIndex = ( currentShape.leftBoundaryReferenceRemainder - (currentShape.currentReferenceIndex % width) )
+      removeCurrentClass()
+      currentShape.currentReferenceIndex -= width
+      currentRotation = currentShape.rotationsArray(predictiveRotationIndex)
+    } else if (currentShape.currentReferenceIndex % width < currentShape.leftBoundaryReferenceRemainder) {
+      removeCurrentClass()
+      currentShape.currentReferenceIndex += ( currentShape.leftBoundaryReferenceRemainder - (currentShape.currentReferenceIndex % width) )
+      console.log('currentShape.currentReferenceIndex: ' + currentShape.currentReferenceIndex)
     } else if (currentShape.currentReferenceIndex % width > currentShape.rightBoundaryReferenceRemainder) {
-      currentShape.currentReferenceIndex = ( width - (currentShape.currentReferenceIndex % width) )
+      removeCurrentClass()
+      currentShape.currentReferenceIndex -= ( width - (currentShape.currentReferenceIndex % width) )
     }
+  } else {
+    // ! if no collision, rotate shape at currentReferenceIndex
+
   }
+
+  // if (currentShape.getCurrentSide() === rotationSideArray[0] || currentShape.getCurrentSide() === rotationSideArray[2]) {
+  //   if (currentShape.currentReferenceIndex - (currentShape.topBoundaryReferenceHeight) < 0) {
+
+
+
+
+  // // ! if (currentSide is rightSide or leftSide) {...}
+  // // !    if (the next rotation blocks will be out of range) {}
+  // if (currentShape.getCurrentSide() === rotationSideArray[0] || currentShape.getCurrentSide() === rotationSideArray[2]) {
+  //   if (currentShape.currentReferenceIndex - (currentShape.topBoundaryReferenceHeight) < 0) {
+  //     currentShape.currentReferenceIndex = (currentShape.currentReferenceIndex % width) + (currentShape.topBoundaryReferenceHeight)
+  //     currentShape.currentRotationIndex = predictiveRotationIndex
+  //     currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+  //     //  ! then rotate
+  //   } else if ( (currentShape.currentReferenceIndex + currentShape.bottomBoundaryReferenceHeight) >= (width * height) ) {
+  //     currentShape.currentReferenceIndex += width
+  //   }
+  // //  ! if (currentSide is topSide or bottomSide) {...}
+  // // !    if (currentReferenceIndex is too close to left side && rotation activated) {update the reference index}
+  // // !    else if (currentReferenceIndex is too close to right side) {update the reference index}
+  // } else if (currentShape.getCurrentSide() === rotationSideArray[1] || currentShape.getCurrentSide() === rotationSideArray[3]) {
+  //   if (currentShape.currentReferenceIndex % width < currentShape.leftBoundaryReferenceRemainder) {
+  //     currentShape.currentReferenceIndex = ( currentShape.leftBoundaryReferenceRemainder - (currentShape.currentReferenceIndex % width) )
+  //   } else if (currentShape.currentReferenceIndex % width > currentShape.rightBoundaryReferenceRemainder) {
+  //     currentShape.currentReferenceIndex = ( width - (currentShape.currentReferenceIndex % width) )
+  //   }
+  // }
 
   // if (shape.currentReferenceIndex % width < shape.leftBoundaryReferenceRemainder) {
   //   shape.currentReferenceIndex = ( shape.leftBoundaryReferenceRemainder - (shape.currentReferenceIndex % width) )
