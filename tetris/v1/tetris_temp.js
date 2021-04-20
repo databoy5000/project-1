@@ -22,17 +22,6 @@ let isDropCheck = false
 
 // ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
 // ! Global functions
-// function downwardCollisionCheck() {
-//   return currentRotation.some( (cellIndex) => {
-//     switch (true) {
-//       case movementType === movements[1]: return (cellIndex % width === 0) || cells[cellIndex - 1].classList.contains('dead')
-//       case movementType === movements[2]: return (cellIndex % width === width - 1) || cells[cellIndex + 1].classList.contains('dead')
-//     }
-//   })
-// }
-
-// function sidewayCollisionCheck() {}
-
 function removeCurrentClass() {
   return currentRotation.forEach( (cellIndex) => {
     cells[cellIndex].removeAttribute('class')
@@ -131,9 +120,27 @@ function dropCheck(movementType) {
   }
 }
 
-function isSidesCollision() {
-  if ( (currentShape.currentReferenceIndex % width < currentShape.leftBoundaryReferenceRemainder) ||
-  (currentShape.currentReferenceIndex % width < currentShape.rightBoundaryReferenceRemainder) ) {
+function isTopCollision(rotation) {
+  return rotation.some( (cellIndex) => {
+    return (cellIndex < 0)
+  })
+}
+
+function isBottomCollision(rotation) {
+  return rotation.some( (cellIndex) => {
+    return (cellIndex >= width * height)
+  })
+}
+
+function isCollisionDeadShape(rotation) {
+  return rotation.some( (cellIndex) => {
+    return cells[cellIndex].classList.contains('dead')
+  })
+}
+
+function isSidesCollision(shape) {
+  if ( (shape.currentReferenceIndex % width < shape.leftBoundaryReferenceRemainder) ||
+  (shape.currentReferenceIndex % width < shape.rightBoundaryReferenceRemainder) ) {
     return true
   }
 }
@@ -161,26 +168,20 @@ function rotationBoundaryCheck() {
 
   if (currentShape.currentRotationIndex >= (currentShape.allRotations().length - 1)) {
     predictiveRotationIndex = 0
-    predictiveRotation = currentShape.rotationsArray(predictiveRotationIndex)
   } else {
     predictiveRotationIndex = currentShape.currentRotationIndex + 1
-    predictiveRotation = currentShape.rotationsArray(predictiveRotationIndex)
   }
 
+  predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+
   // ! separate variables for different collision detections, which will be treated differently
-  const isTopCollision = predictiveRotation.some( (cellIndex) => {
-    return (cellIndex < 0)
-  })
+  const isTopCollision = isTopCollision(predictiveRotation)
 
-  const isBottomCollision = predictiveRotation.some( (cellIndex) => {
-    return (cellIndex >= width * height)
-  })
+  const isBottomCollision = isBottomCollision(predictiveRotation)
 
-  const isCollisionDeadShape = predictiveRotation.some( (cellIndex) => {
-    return cells[cellIndex].classList.contains('dead')
-  })
+  const isCollisionDeadShape = isCollisionDeadShape(predictiveRotation)
 
-  const isSidesCollision = isSidesCollision()
+  const isSidesCollision = isSidesCollision(currentShape)
 
   // ! if no more than one of the conditions below is true, treat accordingly
   if (evaluateConditions(isTopCollision,isBottomCollision,isCollisionDeadShape,isSidesCollision)){
@@ -200,28 +201,35 @@ function rotationBoundaryCheck() {
 
       let isCollision = true
       
+      // ! entering a while loop to calculate how much a shape has to shift
       while (isCollision) {
+
+        // ! for each cells of the predictive shape which is in collision with a dead shape
         predictiveRotation.forEach( (cellIndex) => {
           if (cells[cellIndex].classList.contains('dead')) {
 
+            // ! if making a vertical shape rotation
             if ( (switchToSide === rotationSideArray[0]) || (switchToSide === rotationSideArray[1]) ) {
 
+              // ! shift down width steps (collision above)
               if (cellIndex < currentShape.currentReferenceIndex) {
                 predictiveReferenceIndex = currentShape.currentReferenceIndex + width
               }
               
+              // ! shift up width steps (collision below)
               if (cellIndex > currentShape.currentReferenceIndex) {
                 predictiveReferenceIndex = currentShape.currentReferenceIndex - width
               }
 
-              predictiveRotation = currentShape.rotationsArray(predictiveRotationIndex)
-
+            // ! if making a horizontal shape rotation
             }  else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
 
+              // ! shift right 1 steps (collision left)
               if (cellIndex < currentShape.currentReferenceIndex) {
                 predictiveReferenceIndex = currentShape.currentReferenceIndex + 1
               }
-              
+
+              // ! shift right 1 steps (collision left)
               if (cellIndex > currentShape.currentReferenceIndex) {
                 predictiveReferenceIndex = currentShape.currentReferenceIndex - 1
               }
@@ -229,10 +237,14 @@ function rotationBoundaryCheck() {
           }
         })
 
+        predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+
+        // ! check if there are still collisions
         const remainingCollisions = predictiveRotation.filter( (cellIndex) => {
           return cells[cellIndex].classList.contains('dead')
         })
 
+        // ! if collisions remain, keep in the while loop and carry on
         if (remainingCollisions.length <= 0) {
           isCollision = false
         }
@@ -371,7 +383,7 @@ const iShape = {
       return 'topSide'
     }
   },
-  predictiveRotationCoordinates(referenceIndex,rotationIndex) {
+  predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
 }
