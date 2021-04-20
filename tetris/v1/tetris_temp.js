@@ -138,9 +138,13 @@ function isCollisionDeadShape(rotation) {
   })
 }
 
-function isSidesCollision(shape) {
-  if ( (shape.currentReferenceIndex % width < shape.leftBoundaryReferenceRemainder) ||
-  (shape.currentReferenceIndex % width < shape.rightBoundaryReferenceRemainder) ) {
+function isSidesCollision(shape = currentShape,referenceIndex = false) {
+  if (shape && !referenceIndex &&
+    ( (shape.currentReferenceIndex % width < shape.leftBoundaryReferenceRemainder) ||
+    (shape.currentReferenceIndex % width < shape.rightBoundaryReferenceRemainder) ) ) {
+    return true
+  } else if ( (referenceIndex % width < shape.leftBoundaryReferenceRemainder) ||
+  (referenceIndex % width < shape.rightBoundaryReferenceRemainder) ) {
     return true
   }
 }
@@ -165,8 +169,10 @@ function rotationBoundaryCheck() {
   let predictiveRotationIndex // outputs which rotation
   let predictiveRotation // outputs the chosen rotation index
   let predictiveReferenceIndex
+  let collisionErrors = 0
+  let predictionCorrectionCount = 0
 
-  if (currentShape.currentRotationIndex >= (currentShape.allRotations().length - 1)) {
+  if (currentShape.currentRotationIndex >= (currentShape.allRotations(currentShape.currentReferenceIndex).length - 1)) {
     predictiveRotationIndex = 0
   } else {
     predictiveRotationIndex = currentShape.currentRotationIndex + 1
@@ -221,6 +227,15 @@ function rotationBoundaryCheck() {
                 predictiveReferenceIndex = currentShape.currentReferenceIndex - width
               }
 
+              predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+              if (isBottomCollision(predictiveRotation) || isTopCollision(predictiveRotation)) {
+                collisionErrors++
+              }
+
+              if (isCollisionDeadShape(predictiveRotation)) {
+                predictionCorrectionCount++
+              }
+
             // ! if making a horizontal shape rotation
             }  else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
 
@@ -233,12 +248,23 @@ function rotationBoundaryCheck() {
               if (cellIndex > currentShape.currentReferenceIndex) {
                 predictiveReferenceIndex = currentShape.currentReferenceIndex - 1
               }
+
+              predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+              if (isSidesCollision(currentShape,predictiveReferenceIndex)) {
+                collisionErrors++
+              }
+              
+              if (isCollisionDeadShape(predictiveRotation)) {
+                predictionCorrectionCount++
+              }
             }
           }
         })
 
-        predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
-
+        if (collisionErrors > 0 || predictionCorrectionCount > 2) {
+          isCollision = false
+          return
+        }
         // ! check if there are still collisions
         const remainingCollisions = predictiveRotation.filter( (cellIndex) => {
           return cells[cellIndex].classList.contains('dead')
@@ -376,7 +402,7 @@ const iShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
-  getCurrentSide(rotationArrayIndex) {
+  getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
     if (rotationArrayIndex === 0) {
       return 'rightSide'
     } else if (rotationArrayIndex === 1) {
@@ -388,7 +414,243 @@ const iShape = {
   },
 }
 
+const oShape = {
+  startIndex: 14,
+  currentReferenceIndex: null,
+  currentRotationIndex: 0,
+  currentClass: 'o',
+  deadClass: 'dead',
+  leftBoundaryReferenceRemainder: 1,
+  rightBoundaryReferenceRemainder: 8,
+  topBoundaryReferenceHeight: width * 1,
+  bottomBoundaryReferenceHeight: 0,
+  rightSide(referenceIndex) {
+    return [referenceIndex - 10,referenceIndex - 9,referenceIndex,referenceIndex + 1]
+  },
+  allRotations(referenceIndex) {
+    return [this.rightSide(referenceIndex)]
+  },
+  rotationsArray(arrayIndex) {
+    return this.allRotations(this.currentReferenceIndex)[arrayIndex]
+  },
+  getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+    if (rotationArrayIndex === 0) {
+      return 'rightSide'
+    }
+  },
+  predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
+    return this.allRotations(referenceIndex)[rotationIndex]
+  },
+}
+
+const tShape = {
+  startIndex: 14,
+  currentReferenceIndex: null,
+  currentRotationIndex: 0,
+  currentClass: 't',
+  deadClass: 'dead',
+  leftBoundaryReferenceRemainder: 1,
+  rightBoundaryReferenceRemainder: 8,
+  topBoundaryReferenceHeight: width * 1,
+  bottomBoundaryReferenceHeight: width * 1,
+  rightSide(referenceIndex) {
+    return [referenceIndex,referenceIndex - 10,referenceIndex + 1,referenceIndex + 10]
+  },
+  topSide(referenceIndex) {
+    return [referenceIndex,referenceIndex - 1,referenceIndex - 10,referenceIndex + 1]
+  },
+  leftSide(referenceIndex) {
+    return [referenceIndex,referenceIndex - 10,referenceIndex - 1,referenceIndex + 10]
+  },
+  bottomSide(referenceIndex) {
+    return [referenceIndex,referenceIndex - 1,referenceIndex + 10,referenceIndex + 1]
+  },
+  allRotations(referenceIndex) {
+    return [this.topSide(referenceIndex),this.rightSide(referenceIndex),this.bottomSide(referenceIndex),this.leftSide(referenceIndex)]
+  },
+  rotationsArray(arrayIndex) {
+    return this.allRotations(this.currentReferenceIndex)[arrayIndex]
+  },
+  getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+    if (rotationArrayIndex === 0) {
+      return 'topSide'
+    } else if (rotationArrayIndex === 1) {
+      return 'rightSide'
+    } else if (rotationArrayIndex === 2) {
+      return 'bottomSide'
+    } else if (rotationArrayIndex === 3) {
+      return 'leftSide'
+    }
+  },
+  predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
+    return this.allRotations(referenceIndex)[rotationIndex]
+  },
+}
+
+const jShape = {
+  startIndex: 14,
+  currentReferenceIndex: null,
+  currentRotationIndex: 0,
+  currentClass: 'j',
+  deadClass: 'dead',
+  leftBoundaryReferenceRemainder: 2,
+  rightBoundaryReferenceRemainder: 7,
+  topBoundaryReferenceHeight: width * 2,
+  bottomBoundaryReferenceHeight: width * 2,
+  rightSide(referenceIndex) {
+    return [referenceIndex - 10,referenceIndex,referenceIndex + 1,referenceIndex + 2]
+  },
+  topSide(referenceIndex) {
+    return [referenceIndex - 1,referenceIndex,referenceIndex - 10,referenceIndex - 20]
+  },
+  leftSide(referenceIndex) {
+    return [referenceIndex - 2,referenceIndex - 1,referenceIndex,referenceIndex + 10]
+  },
+  bottomSide(referenceIndex) {
+    return [referenceIndex + 1,referenceIndex,referenceIndex + 10,referenceIndex + 20]
+  },
+  allRotations(referenceIndex) {
+    return [this.rightSide(referenceIndex),this.topSide(referenceIndex),this.leftSide(referenceIndex),this.bottomSide(referenceIndex)]
+  },
+  rotationsArray(arrayIndex) {
+    return this.allRotations(this.currentReferenceIndex)[arrayIndex]
+  },
+  getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+    if (rotationArrayIndex === 0) {
+      return 'rightSide'
+    } else if (rotationArrayIndex === 1) {
+      return 'topSide'
+    } else if (rotationArrayIndex === 2) {
+      return 'leftSide'
+    } else if (rotationArrayIndex === 3) {
+      return 'bottomSide'
+    }
+  },
+  predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
+    return this.allRotations(referenceIndex)[rotationIndex]
+  },
+}
+
+const jReverseShape = {
+  startIndex: 15,
+  currentReferenceIndex: null,
+  currentRotationIndex: 0,
+  currentClass: 'j-reverse',
+  deadClass: 'dead',
+  leftBoundaryReferenceRemainder: 2,
+  rightBoundaryReferenceRemainder: 7,
+  topBoundaryReferenceHeight: width * 2,
+  bottomBoundaryReferenceHeight: width * 2,
+  rightSide(referenceIndex) {
+    return [referenceIndex + 10,referenceIndex,referenceIndex + 1,referenceIndex + 2]
+  },
+  topSide(referenceIndex) {
+    return [referenceIndex + 1,referenceIndex,referenceIndex - 10,referenceIndex - 20]
+  },
+  leftSide(referenceIndex) {
+    return [referenceIndex - 2,referenceIndex - 1,referenceIndex,referenceIndex - 10]
+  },
+  bottomSide(referenceIndex) {
+    return [referenceIndex - 1,referenceIndex,referenceIndex + 10,referenceIndex + 20]
+  },
+  allRotations(referenceIndex) {
+    return [this.leftSide(referenceIndex),this.topSide(referenceIndex),this.rightSide(referenceIndex),this.bottomSide(referenceIndex)]
+  },
+  rotationsArray(arrayIndex) {
+    return this.allRotations(this.currentReferenceIndex)[arrayIndex]
+  },
+  getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+    if (rotationArrayIndex === 0) {
+      return 'leftSide'
+    } else if (rotationArrayIndex === 1) {
+      return 'topSide'
+    } else if (rotationArrayIndex === 2) {
+      return 'rightSide'
+    } else if (rotationArrayIndex === 3) {
+      return 'bottomSide'
+    }
+  },
+  predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
+    return this.allRotations(referenceIndex)[rotationIndex]
+  },
+}
+
+const sShape = {
+  startIndex: 14,
+  currentReferenceIndex: null,
+  currentRotationIndex: 0,
+  currentClass: 's',
+  deadClass: 'dead',
+  leftBoundaryReferenceRemainder: 1,
+  rightBoundaryReferenceRemainder: 8,
+  topBoundaryReferenceHeight: width * 1,
+  bottomBoundaryReferenceHeight: width * 1,
+  rightSide(referenceIndex) {
+    return [referenceIndex - 1,referenceIndex,referenceIndex - 10,referenceIndex - 9]
+  },
+  topSide(referenceIndex) {
+    return [referenceIndex - 10,referenceIndex,referenceIndex + 1,referenceIndex + 11]
+  },
+  allRotations(referenceIndex) {
+    return [this.rightSide(referenceIndex),this.topSide(referenceIndex)]
+  },
+  rotationsArray(arrayIndex) {
+    return this.allRotations(this.currentReferenceIndex)[arrayIndex]
+  },
+  getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+    if (rotationArrayIndex === 0) {
+      return 'rightSide'
+    } else if (rotationArrayIndex === 1) {
+      return 'topSide'
+    }
+  },
+  predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
+    return this.allRotations(referenceIndex)[rotationIndex]
+  },
+}
+
+const sReverseShape = {
+  startIndex: 14,
+  currentReferenceIndex: null,
+  currentRotationIndex: 0,
+  currentClass: 's-reverse',
+  deadClass: 'dead',
+  leftBoundaryReferenceRemainder: 1,
+  rightBoundaryReferenceRemainder: 8,
+  topBoundaryReferenceHeight: width * 1,
+  bottomBoundaryReferenceHeight: width * 1,
+  leftSide(referenceIndex) {
+    return [referenceIndex - 11,referenceIndex - 10,referenceIndex,referenceIndex + 1]
+  },
+  topSide(referenceIndex) {
+    return [referenceIndex - 10,referenceIndex,referenceIndex - 1,referenceIndex + 9]
+  },
+  allRotations(referenceIndex) {
+    return [this.leftSide(referenceIndex),this.topSide(referenceIndex)]
+  },
+  rotationsArray(arrayIndex) {
+    return this.allRotations(this.currentReferenceIndex)[arrayIndex]
+  },
+  getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+    if (rotationArrayIndex === 0) {
+      return 'leftSide'
+    } else if (rotationArrayIndex === 1) {
+      return 'topSide'
+    }
+  },
+  predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
+    return this.allRotations(referenceIndex)[rotationIndex]
+  },
+}
+
+// const shapesArray = [iShape,tShape,oShape,jShape,jReverseShape,sShape,sReverseShape]
 const shapesArray = [iShape]
+// const shapesArray = [tShape]
+// const shapesArray = [oShape]
+// const shapesArray = [jShape]
+// const shapesArray = [jReverseShape]
+// const shapesArray = [sShape]
+// const shapesArray = [sReverseShape]
 
 elements.play.addEventListener('click', () => {
 

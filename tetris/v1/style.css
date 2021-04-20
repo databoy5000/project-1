@@ -22,36 +22,38 @@ body {
   width: 10%;
   height: 5%;
   border: 1px solid black;
+  background-color: #F1FDDF;
 }
 
 .i {
   background-color: turquoise;
 }
 
+.t {
+  background-color: purple;
+}
+
+.o {
+  background-color: yellow;
+}
+
+.j {
+  background-color: blue;
+}
+
+.j-reverse {
+  background-color: orange;
+}
+
+.s {
+  background-color: green;
+}
+
+.s-reverse {
+  background-color: red;
+}
+
 .dead {
   background-color: black;
 }
 
-#j-shape {
-  background-color: blue
-}
-
-#j-rev-shape {
-  background-color: orange
-}
-
-#o-shape {
-  background-color: yellow
-}
-
-#s-shape {
-  background-color: green
-}
-
-#s-rev-shape {
-  background-color: red
-}
-
-#t-shape {
-  background-color: purple
-}
