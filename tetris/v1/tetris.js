@@ -418,6 +418,7 @@ function clearFullRows() {
       rowArray.forEach( div => div.removeAttribute('class') )
     }
   }
+  linesCleared += fullRows.length
 }
 
 function shiftRowsDown(emptyRows) {
@@ -653,6 +654,95 @@ const shapesArray = [iShape,tShape,oShape,jShape,jReverseShape,sShape,sReverseSh
 // const shapesArray = [sShape]
 // const shapesArray = [sReverseShape]
 
+const playerScoring = {
+  currentLevel: 0,
+  currentScore: 0,
+  setIntervalTimingIncrease() {
+    if (this.currentLevel === 0) {
+      return 720
+    } else if (this.currentLevel === 1) {
+      return 640
+    } else if (this.currentLevel === 2) {
+      return 580
+    } else if (this.currentLevel === 3) {
+      return 500
+    } else if (this.currentLevel === 4) {
+      return 440
+    } else if (this.currentLevel === 4) {
+      return 360
+    } else if (this.currentLevel === 6) {
+      return 300
+    } else if (this.currentLevel === 7) {
+      return 220
+    } else if (this.currentLevel === 8) {
+      return 140
+    } else if (this.currentLevel === 9) {
+      return 100
+    } else if (this.currentLevel >= 10 && this.currentLevel < 13) {
+      return 80
+    } else if (this.currentLevel >= 13 && this.currentLevel < 16) {
+      return 60
+    } else if (this.currentLevel >= 16 && this.currentLevel < 19) {
+      return 40
+    } else if (this.currentLevel >= 19) {
+      return 20
+    }
+  },
+  linesBeforeIncrease() {
+    if (this.currentLevel < 10) {
+      return 10 + (this.currentLevel * 10)
+    } else if (this.currentLevel >= 10 && this.currentLevel < 16) {
+      return 100
+    } else if (this.currentLevel >= 16 && this.currentLevel < 26) {
+      return (this.currentLevel * 10) - 50
+    } else if (this.currentLevel >= 26) {
+      return 200
+    }
+  },
+  scoringCalculation(lines) {
+    if (this.currentLevel === 0) {
+      if (lines === 1) {
+        this.currentScore += 40
+      } else if (lines === 2) {
+        this.currentScore += 100
+      } else if (lines === 3) {
+        this.currentScore += 300
+      } else if (lines === 4) {
+        this.currentScore += 1200
+      }
+    } else if (this.currentLevel === 1) {
+      if (lines === 1) {
+        this.currentScore += 80
+      } else if (lines === 2) {
+        this.currentScore += 200
+      } else if (lines === 3) {
+        this.currentScore += 600
+      } else if (lines === 4) {
+        this.currentScore += 2400
+      }
+    } else if (this.currentLevel >= 2 && this.currentLevel < 9) {
+      if (lines === 1) {
+        this.currentScore += 120
+      } else if (lines === 2) {
+        this.currentScore += 300
+      } else if (lines === 3) {
+        this.currentScore += 900
+      } else if (lines === 4) {
+        this.currentScore += 3600
+      }
+    } else if (this.currentLevel >= 9) {
+      if (lines === 1) {
+        this.currentScore += (40 * (this.currentLevel + 1))
+      } else if (lines === 2) {
+        this.currentScore += (1000 * (this.currentLevel + 1))
+      } else if (lines === 3) {
+        this.currentScore += (3000 * (this.currentLevel + 1))
+      } else if (lines === 4) {
+        this.currentScore += (12000 * (this.currentLevel + 1))
+      }
+    }
+  },
+}
 
 elements.play.addEventListener('click', () => {
 
@@ -765,6 +855,8 @@ elements.restart.addEventListener('click', () => {
 
   // ! reset intervalID to 0
   intervalID = 0
+
+  // ! do stuff here
 
 
 })
