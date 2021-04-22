@@ -22,7 +22,7 @@ let linesCleared = 0 // ! for scoring
 // ! rows full of dead shapes
 let fullRows = []
 
-let shapeIsDead = true
+let pauseEventFunctions = true
 
 
 // ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
@@ -44,6 +44,8 @@ function generateNewShape() {
 }
 
 function removeCurrentClass(rotation = currentRotation) {
+  console.log('pauseEventFunctions: ' + pauseEventFunctions)
+  console.log('rotation: ' + rotation)
   return rotation.forEach( (cellIndex) => {
     cells[cellIndex].removeAttribute('class')
   })
@@ -118,7 +120,9 @@ function dropCheck(movementType) {
     moveShape(false)
     currentShape.currentReferenceIndex = null
     dropNewShape = true
-    shapeIsDead = true
+    console.log('pauseEventFunctions: ' + pauseEventFunctions)
+    pauseEventFunctions = true
+    console.log('pauseEventFunctions: ' + pauseEventFunctions)
   }
 }
 
@@ -216,6 +220,35 @@ function sideCorrection(currentRotation = currentRotation,subPredictiveRotationI
   return subPredictiveReferenceIndex
 }
 
+function topDownCorrection(subPredictiveReferenceIndex,subPredictiveRotationIndex,subPredictiveRotation) {
+
+  let isRunning = true
+
+  while (isRunning) {
+
+    // ! if the predictive shape has gone too far up, shift it +width
+    const topCorrection = subPredictiveRotation.some( (cellIndex) => {
+      return cellIndex < 0
+    })
+
+    // ! if the predictive shape has gone too far down, shift it -width
+    const bottomCorrection = subPredictiveRotation.some( (cellIndex) => {
+      return cellIndex >= width * height
+    })
+
+    if (topCorrection) {
+      subPredictiveReferenceIndex += width
+      subPredictiveRotation = currentShape.predictiveRotationCoordinates(subPredictiveReferenceIndex,subPredictiveRotationIndex)
+    } else if (bottomCorrection) {
+      subPredictiveReferenceIndex -= width
+      subPredictiveRotation = currentShape.predictiveRotationCoordinates(subPredictiveReferenceIndex,subPredictiveRotationIndex)
+    } else {
+      isRunning = false
+    }
+  }
+  return subPredictiveReferenceIndex
+}
+
 function evaluateConditions(array) {
   const booleanArray = []
   array.forEach( (element) => {
@@ -246,10 +279,8 @@ function evaluateMultipleCollisions(array) {
 
 function rotationBoundaryCheck() {
 
-  // ! define the next rotation variables to make collision checks
-  let predictiveRotationIndex // outputs which rotation
-  let predictiveRotation // outputs the chosen rotation index
-  let predictiveReferenceIndex = currentShape.currentReferenceIndex
+  // ! defining the next rotation variables to make collision checks
+  let predictiveRotationIndex
 
   if (currentShape.currentRotationIndex >= (currentShape.allRotations(currentShape.currentReferenceIndex).length - 1)) {
     predictiveRotationIndex = 0
@@ -257,7 +288,8 @@ function rotationBoundaryCheck() {
     predictiveRotationIndex = currentShape.currentRotationIndex + 1
   }
 
-  predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+  let predictiveReferenceIndex = currentShape.currentReferenceIndex
+  let predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
 
   // ! separate variables for different collision detections, which will be treated differently
   const topCollisionResult = isTopCollision(predictiveRotation)
@@ -279,18 +311,15 @@ function rotationBoundaryCheck() {
   // ! if no more than one of the conditions below is true, treat accordingly
   if (evaluateConditions(collisionsArray)) {
     
-    if (topCollisionResult) {
+    if (topCollisionResult || bottomCollisionResult) {
       removeCurrentClass()
-      currentShape.currentReferenceIndex = (currentShape.currentReferenceIndex % width) + (currentShape.topBoundaryReferenceHeight)
+  
+      currentShape.currentReferenceIndex = topDownCorrection(predictiveReferenceIndex,predictiveRotationIndex,predictiveRotation)
       currentShape.currentRotationIndex = predictiveRotationIndex
       currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+
       addCurrentClass(currentRotation)
-    } else if (bottomCollisionResult) {
-      removeCurrentClass()
-      currentShape.currentReferenceIndex -= currentShape.bottomBoundaryReferenceHeight
-      currentShape.currentRotationIndex = predictiveRotationIndex
-      currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-      addCurrentClass(currentRotation)
+
     // ! we need to filter out which block(s) of the predictive rotation is in collision with another dead shape.
     // !if the new rotation is horizontal (top or bottom side), the collision is either above or below.
     // ! on the opposite, it will be a sideway collision.
@@ -440,7 +469,6 @@ function shiftRowsDown(emptyRows) {
       cellIndexesToDrop.forEach( (cellIndex) => {
         cells[cellIndex].classList.add('dead')
       })
-
     })
   }
 }
@@ -451,6 +479,7 @@ const elements = {
   grid: document.querySelector('#grid'),
   pause: document.querySelector('#pause'),
   restart: document.querySelector('#restart'),
+  scoreboard: document.querySelector('#scoreboard'),
 }
 
 // ! Grid Properties/elements
@@ -467,6 +496,9 @@ for (let index = 0; index < width * height; index++) {
   div.innerHTML = index
   cells.push(div)
 }
+
+// ! Scoreboard
+
 
 // ! Shapes objects & array
 const iShape = {
@@ -657,6 +689,10 @@ const shapesArray = [iShape,tShape,oShape,jShape,jReverseShape,sShape,sReverseSh
 const playerScoring = {
   currentLevel: 0,
   currentScore: 0,
+  scoreReset() {
+    this.currentLevel = 0
+    this.currentScore = 0
+  },
   setIntervalTimingIncrease() {
     if (this.currentLevel === 0) {
       return 720
@@ -776,7 +812,8 @@ elements.play.addEventListener('click', () => {
         currentShape = generateNewShape()
 
         // ! toggle on to disable functions in eventListeners
-        shapeIsDead = false
+        // pauseEventFunctions = false
+        console.log('pauseEventFunctions: ' + pauseEventFunctions)
 
         const endGameCollision = isCollisionDeadShape(currentRotation)
 
@@ -788,6 +825,8 @@ elements.play.addEventListener('click', () => {
 
         isFirstLine = true
         dropNewShape = false
+        pauseEventFunctions = false
+        console.log('pauseEventFunctions: ' + pauseEventFunctions)
 
         console.log('__dropping new shape__')
       }
@@ -804,32 +843,34 @@ elements.play.addEventListener('click', () => {
 })
 
 document.addEventListener('keydown', (event) => {
-
   // ! If (upArrow key is pressed) && (the end of the shape.rotation() array is reached) {go back to the start of this array}
   if (event.key === 'ArrowUp') {
-    console.log('____rotating')
-    if (!shapeIsDead) {
+    console.log('____inside Rotation')
+    console.log('pauseEventFunctions: ' + pauseEventFunctions)
+    if (!pauseEventFunctions) {
+      console.log('____activating Rotation')
+      console.log('pauseEventFunctions: ' + pauseEventFunctions)
       rotationBoundaryCheck()
     }
   }
-  
+
   // ! If (downArrow key is pressed) && (the shape blocks are not on the last line) {drop the shape down}
   if (event.key === 'ArrowDown') {
-    if (!shapeIsDead) {
+    if (!pauseEventFunctions) {
       dropCheck(movements[0])
     }
   }
 
   // ! If (leftArrow key is pressed) && (the shape blocks are not on the left edge) {move the shape left}
   if (event.key === 'ArrowLeft') {
-    if (!shapeIsDead) {
+    if (!pauseEventFunctions) {
       dropCheck(movements[1])
     }
   }
 
   // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
   if (event.key === 'ArrowRight') {
-    if (!shapeIsDead) {
+    if (!pauseEventFunctions) {
       dropCheck(movements[2])
     }
   }
@@ -842,6 +883,7 @@ elements.pause.addEventListener('click', () => {
   } else {
     elements.pause.innerHTML = 'Pause Game'
   }
+  // pauseEventFunctions = !pauseEventFunctions
 })
 
 elements.restart.addEventListener('click', () => {
@@ -856,7 +898,22 @@ elements.restart.addEventListener('click', () => {
   // ! reset intervalID to 0
   intervalID = 0
 
-  // ! do stuff here
+  // ! reset all let global variables
+  dropNewShape = true
+  intervalID = 0
+  currentShape = {}
+  currentRotation = []
+  isFirstLine = true
+  isPaused = false
+  linesCleared = 0
+  fullRows = []
+  pauseEventFunctions = true
 
+  // ! reset all objects
+  playerScoring.scoreReset()
+  shapesArray.forEach( (object) => {
+    object.currentReferenceIndex = null
+    object.currentRotationIndex = 0
+  })
 
 })
