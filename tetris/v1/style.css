@@ -9,6 +9,8 @@ body {
   align-items: center;
   flex-direction: column;
   margin: 0;
+  /* background-image: url(./images/yellow.jpeg); */
+  /* background-color: black; */
 }
 
 #grid {
@@ -26,18 +28,22 @@ body {
 }
 
 .i {
+  /* background-image: url(./images/blue.png); */
   background-color: turquoise;
 }
 
 .t {
+  /* background-image: url(./images/red.png); */
   background-color: purple;
 }
 
 .o {
+  /* background-image: url(./images/red.jpeg); */
   background-color: yellow;
 }
 
 .j {
+  /* background-image: ; */
   background-color: blue;
 }
 

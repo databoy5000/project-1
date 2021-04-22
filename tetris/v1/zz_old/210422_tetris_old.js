@@ -6,6 +6,7 @@
 
 // ! Other variables declaration
 const movements = ['down','left','right','skipDown']
+// const rotationSideArray = ['topSide','bottomSide','rightSide','leftSide']
 const deadClasses = ['i-dead','t-dead','o-dead','j-dead','j-reverse-dead','s-dead','s-reverse-dead']
 
 let dropNewShape = true
@@ -13,16 +14,23 @@ let intervalID = 0
 
 let currentShape = {}
 let currentRotation = []
+// let currentRotationIndex = 0 // ! 0 is the default shape rotation to drop new shapes in the game // now as property in an object
 let isFirstLine = true
+let shapeIsDead // ! to avoid 'keydowns' after a shape is dead/dropped
 
 let isPaused = false // ! variable for paused game
 
 let linesCleared = 0 // ! for scoring
 
+// ! Used to prevent bugs where class stays at currentClass instead of dead when rotating/keydown close to dead shapes 
+// let isDropCheck = false
+
+// // ! These allow sideway collision boundaries for currentShapes
+// let leftSideRedTape = []
+// let rightSideRedTape = []
+
 // ! rows full of dead shapes
 let fullRows = []
-
-let shapeIsDead = true
 
 
 // ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
@@ -54,6 +62,28 @@ function addCurrentClass(rotation = currentRotation) {
     cells[cellIndex].classList.add(currentShape.currentClass)
   })
 }
+
+// function sideCollisionBoundaries() {
+
+//   const cellsIndexArray = cells.map( (cell,index) => {
+//     return index
+//   })
+
+//   for (let i = 0; i < height * width; i += 10) {
+//     const leftRedTapeSlices = cellsIndexArray.slice(i,i + currentShape.leftBoundaryReferenceRemainder)
+
+//     leftRedTapeSlices.forEach( (cellIndex) => {
+//       leftSideRedTape.push(cellIndex)
+//     })
+
+//     const rightRedTapeSlices = cellsIndexArray.slice( (i + 1) + currentShape.rightBoundaryReferenceRemainder, i + width)
+
+//     rightRedTapeSlices.forEach( (cellIndex) => {
+//       rightSideRedTape.push(cellIndex)
+//     })
+//   }
+// }
+
 
 function moveShape(movementType,isRotation = false) {
 
@@ -118,7 +148,6 @@ function dropCheck(movementType) {
     moveShape(false)
     currentShape.currentReferenceIndex = null
     dropNewShape = true
-    shapeIsDead = true
   }
 }
 
@@ -216,6 +245,7 @@ function sideCorrection(currentRotation = currentRotation,subPredictiveRotationI
   return subPredictiveReferenceIndex
 }
 
+
 function evaluateConditions(array) {
   const booleanArray = []
   array.forEach( (element) => {
@@ -250,12 +280,16 @@ function rotationBoundaryCheck() {
   let predictiveRotationIndex // outputs which rotation
   let predictiveRotation // outputs the chosen rotation index
   let predictiveReferenceIndex = currentShape.currentReferenceIndex
+  // let collisionErrors = 0
+  // let predictionCorrectionCount = 0
 
   if (currentShape.currentRotationIndex >= (currentShape.allRotations(currentShape.currentReferenceIndex).length - 1)) {
     predictiveRotationIndex = 0
   } else {
     predictiveRotationIndex = currentShape.currentRotationIndex + 1
   }
+
+  // const switchToSide = currentShape.getCurrentSide(predictiveRotationIndex)
 
   predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
 
@@ -449,7 +483,6 @@ const elements = {
   play: document.querySelector('#play'),
   grid: document.querySelector('#grid'),
   pause: document.querySelector('#pause'),
-  restart: document.querySelector('#restart'),
 }
 
 // ! Grid Properties/elements
@@ -467,13 +500,31 @@ for (let index = 0; index < width * height; index++) {
   cells.push(div)
 }
 
+// for (let i = 200; i >= 100; i -= width) {
+//   const sliced = cells.slice(i - width, i - 2)
+//   sliced.forEach( (cell) => cell.classList.add('dead'))
+// }
+
+
+
 // ! Shapes objects & array
+// add all other shapes when testing is successful
+// replace blockIndexes by rightSide
+// rightSide to topSide
+// topSide to leftSide
+// leftSide to bottomSide
+// bottomSide to rightSide
+
 const iShape = {
   startIndex: 5,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
   currentClass: 'i',
   deadClass: 'dead',
+  // leftBoundaryReferenceRemainder: 2,
+  // rightBoundaryReferenceRemainder: 8,
+  // topBoundaryReferenceHeight: width * 2,
+  // bottomBoundaryReferenceHeight: width * 1,
   rightSide(referenceIndex) {
     return [referenceIndex - 2,referenceIndex - 1,referenceIndex,referenceIndex + 1]
   },
@@ -486,6 +537,13 @@ const iShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+  //   if (rotationArrayIndex === 0) {
+  //     return 'rightSide'
+  //   } else if (rotationArrayIndex === 1) {
+  //     return 'topSide'
+  //   }
+  // },
   predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
@@ -497,6 +555,10 @@ const oShape = {
   currentRotationIndex: 0,
   currentClass: 'o',
   deadClass: 'dead',
+  // leftBoundaryReferenceRemainder: 1,
+  // rightBoundaryReferenceRemainder: 8,
+  // topBoundaryReferenceHeight: width * 1,
+  // bottomBoundaryReferenceHeight: 0,
   rightSide(referenceIndex) {
     return [referenceIndex - 10,referenceIndex - 9,referenceIndex,referenceIndex + 1]
   },
@@ -506,6 +568,11 @@ const oShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+  //   if (rotationArrayIndex === 0) {
+  //     return 'rightSide'
+  //   }
+  // },
   predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
@@ -517,6 +584,10 @@ const tShape = {
   currentRotationIndex: 0,
   currentClass: 't',
   deadClass: 'dead',
+  // leftBoundaryReferenceRemainder: 1,
+  // rightBoundaryReferenceRemainder: 8,
+  // topBoundaryReferenceHeight: width * 1,
+  // bottomBoundaryReferenceHeight: width * 1,
   rightSide(referenceIndex) {
     return [referenceIndex,referenceIndex - 10,referenceIndex + 1,referenceIndex + 10]
   },
@@ -535,6 +606,17 @@ const tShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+  //   if (rotationArrayIndex === 0) {
+  //     return 'topSide'
+  //   } else if (rotationArrayIndex === 1) {
+  //     return 'rightSide'
+  //   } else if (rotationArrayIndex === 2) {
+  //     return 'bottomSide'
+  //   } else if (rotationArrayIndex === 3) {
+  //     return 'leftSide'
+  //   }
+  // },
   predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
@@ -546,6 +628,10 @@ const jShape = {
   currentRotationIndex: 0,
   currentClass: 'j',
   deadClass: 'dead',
+  // leftBoundaryReferenceRemainder: 2,
+  // rightBoundaryReferenceRemainder: 7,
+  // topBoundaryReferenceHeight: width * 2,
+  // bottomBoundaryReferenceHeight: width * 2,
   rightSide(referenceIndex) {
     return [referenceIndex - 10,referenceIndex,referenceIndex + 1,referenceIndex + 2]
   },
@@ -564,6 +650,17 @@ const jShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+  //   if (rotationArrayIndex === 0) {
+  //     return 'rightSide'
+  //   } else if (rotationArrayIndex === 1) {
+  //     return 'topSide'
+  //   } else if (rotationArrayIndex === 2) {
+  //     return 'leftSide'
+  //   } else if (rotationArrayIndex === 3) {
+  //     return 'bottomSide'
+  //   }
+  // },
   predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
@@ -575,6 +672,10 @@ const jReverseShape = {
   currentRotationIndex: 0,
   currentClass: 'j-reverse',
   deadClass: 'dead',
+  // leftBoundaryReferenceRemainder: 2,
+  // rightBoundaryReferenceRemainder: 7,
+  // topBoundaryReferenceHeight: width * 2,
+  // bottomBoundaryReferenceHeight: width * 2,
   rightSide(referenceIndex) {
     return [referenceIndex + 10,referenceIndex,referenceIndex + 1,referenceIndex + 2]
   },
@@ -593,6 +694,17 @@ const jReverseShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+  //   if (rotationArrayIndex === 0) {
+  //     return 'leftSide'
+  //   } else if (rotationArrayIndex === 1) {
+  //     return 'topSide'
+  //   } else if (rotationArrayIndex === 2) {
+  //     return 'rightSide'
+  //   } else if (rotationArrayIndex === 3) {
+  //     return 'bottomSide'
+  //   }
+  // },
   predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
@@ -604,6 +716,10 @@ const sShape = {
   currentRotationIndex: 0,
   currentClass: 's',
   deadClass: 'dead',
+  // leftBoundaryReferenceRemainder: 1,
+  // rightBoundaryReferenceRemainder: 8,
+  // topBoundaryReferenceHeight: width * 1,
+  // bottomBoundaryReferenceHeight: width * 1,
   rightSide(referenceIndex) {
     return [referenceIndex - 1,referenceIndex,referenceIndex - 10,referenceIndex - 9]
   },
@@ -616,6 +732,13 @@ const sShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+  //   if (rotationArrayIndex === 0) {
+  //     return 'rightSide'
+  //   } else if (rotationArrayIndex === 1) {
+  //     return 'topSide'
+  //   }
+  // },
   predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
@@ -627,6 +750,10 @@ const sReverseShape = {
   currentRotationIndex: 0,
   currentClass: 's-reverse',
   deadClass: 'dead',
+  leftBoundaryReferenceRemainder: 1,
+  rightBoundaryReferenceRemainder: 8,
+  topBoundaryReferenceHeight: width * 1,
+  bottomBoundaryReferenceHeight: width * 1,
   leftSide(referenceIndex) {
     return [referenceIndex - 11,referenceIndex - 10,referenceIndex,referenceIndex + 1]
   },
@@ -639,6 +766,13 @@ const sReverseShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
+  //   if (rotationArrayIndex === 0) {
+  //     return 'leftSide'
+  //   } else if (rotationArrayIndex === 1) {
+  //     return 'topSide'
+  //   }
+  // },
   predictiveRotationCoordinates(referenceIndex = this.currentReferenceIndex,rotationIndex = this.currentRotationIndex) {
     return this.allRotations(referenceIndex)[rotationIndex]
   },
@@ -653,6 +787,8 @@ const shapesArray = [iShape,tShape,oShape,jShape,jReverseShape,sShape,sReverseSh
 // const shapesArray = [sShape]
 // const shapesArray = [sReverseShape]
 
+console.log(elements.pause)
+console.log(elements.resume)
 
 elements.play.addEventListener('click', () => {
 
@@ -662,9 +798,12 @@ elements.play.addEventListener('click', () => {
   }
 
   // ! Clear all classes (blocks) from divs (cells) = restart the game
-  cells.forEach( (cell) => {
-    cell.removeAttribute('class')
-  })
+  // maybe use this.className = null
+  // cells.forEach( (cell) => {
+  //   cell.removeAttribute('class')
+  // })
+
+
 
   intervalID = setInterval( () => {
 
@@ -679,14 +818,16 @@ elements.play.addEventListener('click', () => {
       shiftRowsDown(fullRows)
       fullRows = []
 
+
+      shapeIsDead = false
       isFirstLine = false
 
       if (dropNewShape) {
 
-        currentShape = generateNewShape()
+        // leftSideRedTape = []
+        // rightSideRedTape = []
 
-        // ! toggle on to disable functions in eventListeners
-        shapeIsDead = false
+        currentShape = generateNewShape()
 
         const endGameCollision = isCollisionDeadShape(currentRotation)
 
@@ -699,72 +840,60 @@ elements.play.addEventListener('click', () => {
         isFirstLine = true
         dropNewShape = false
 
+        // ! defines the side boundaries for the current shape
+        // sideCollisionBoundaries()
+
         console.log('__dropping new shape__')
       }
 
       if (!isFirstLine){
         dropCheck(movements[0])
+        shapeIsDead = true
       }
 
       clearFullRows()
 
-    }
+  }
 
   },1000)
-})
 
-document.addEventListener('keydown', (event) => {
 
-  // ! If (upArrow key is pressed) && (the end of the shape.rotation() array is reached) {go back to the start of this array}
-  if (event.key === 'ArrowUp') {
-    console.log('____rotating')
-    if (!shapeIsDead) {
-      rotationBoundaryCheck()
-    }
-  }
+
+  if (!shapeIsDead) {
+    document.addEventListener('keydown', (event) => {
+      // ? Here, would it be better to keep all ifs in series of else ifs or better to keep each separated?
+      // ! If (upArrow key is pressed) && (the end of the shape.rotation() array is reached) {go back to the start of this array}
+      if (event.key === 'ArrowUp') {
+        console.log('____rotating')
+        rotationBoundaryCheck()
+      }
+      
+      // ! If (downArrow key is pressed) && (the shape blocks are not on the last line) {drop the shape down}
+      if (event.key === 'ArrowDown') {
+        dropCheck(movements[0])
+      }
   
-  // ! If (downArrow key is pressed) && (the shape blocks are not on the last line) {drop the shape down}
-  if (event.key === 'ArrowDown') {
-    if (!shapeIsDead) {
-      dropCheck(movements[0])
+      // ! If (leftArrow key is pressed) && (the shape blocks are not on the left edge) {move the shape left}
+      if (event.key === 'ArrowLeft') {
+        dropCheck(movements[1])
+      }
+  
+      // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
+      if (event.key === 'ArrowRight') {
+        dropCheck(movements[2])
+      }
+  
+    })
+  }
+
+  
+  elements.pause.addEventListener('click', () => {
+    isPaused = !isPaused
+    if (isPaused) {
+      elements.pause.innerHTML = 'Resume Game'
+    } else {
+      elements.pause.innerHTML = 'Pause Game'
     }
-  }
-
-  // ! If (leftArrow key is pressed) && (the shape blocks are not on the left edge) {move the shape left}
-  if (event.key === 'ArrowLeft') {
-    if (!shapeIsDead) {
-      dropCheck(movements[1])
-    }
-  }
-
-  // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
-  if (event.key === 'ArrowRight') {
-    if (!shapeIsDead) {
-      dropCheck(movements[2])
-    }
-  }
-})
-
-elements.pause.addEventListener('click', () => {
-  isPaused = !isPaused
-  if (isPaused) {
-    elements.pause.innerHTML = 'Resume Game'
-  } else {
-    elements.pause.innerHTML = 'Pause Game'
-  }
-})
-
-elements.restart.addEventListener('click', () => {
-  // ! start off with no class/shapes
-  cells.forEach( (cell) => {
-    cell.removeAttribute('class')
   })
-
-  // ! clear the interval
-  clearInterval(intervalID)
-
-  // ! reset intervalID to 0
-  intervalID = 0
-
 
 })
