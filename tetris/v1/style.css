@@ -14,15 +14,15 @@ body {
 #grid {
   display: flex;
   flex-direction: row;
-  border: 1px solid red;
+  /* border: 1px solid red; */
   flex-wrap: wrap;
+  background-color: #F1FDDF;
 }
 
 #grid div {
   width: 10%;
   height: 5%;
   border: 1px solid black;
-  /* background-color: #F1FDDF; */
 }
 
 .i {

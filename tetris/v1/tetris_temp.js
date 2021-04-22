@@ -15,9 +15,10 @@ let currentShape = {}
 let currentRotation = []
 // let currentRotationIndex = 0 // ! 0 is the default shape rotation to drop new shapes in the game // now as property in an object
 let isFirstLine = true
+let shapeIsDead // ! to avoid 'keydowns' after a shape is dead/dropped
 
-// ! Used to prevent bugs (where class stays at currentClass instead of dead) when rotating/keydown close to dead shapes 
-let isDropCheck = false
+// ! Used to prevent bugs where class stays at currentClass instead of dead when rotating/keydown close to dead shapes 
+// let isDropCheck = false
 
 // ! These allow sideway collision boundaries for currentShapes
 let leftSideRedTape = []
@@ -62,9 +63,6 @@ function sideCollisionBoundaries() {
 
 function moveShape(movementType,isRotation = false) {
 
-  console.log('moveShape() / movementType is: ' + movementType)
-  console.log('moveShape() / rotation is: ' + isRotation)
-
   // ! remove previous class
   currentRotation.forEach( (cellIndex) => {
     cells[cellIndex].removeAttribute('class')
@@ -79,13 +77,10 @@ function moveShape(movementType,isRotation = false) {
     // ? In this case, is it wise to update a global variable (as opposed to entering this global variable into the function as an argument and returning it to have its value re-assigned to the variable in question)?
     // ! Update currentShape.currentReferenceIndex global variable
     if (movementType === movements[0]) {
-      console.log('moveShape() / going DOWN')
       currentShape.currentReferenceIndex += width
     } else if (movementType === movements[1]) {
-      console.log('moveShape() / going LEFT')
       currentShape.currentReferenceIndex -= 1
     } else if (movementType === movements[2]) {
-      console.log('moveShape() / going RIGHT')
       currentShape.currentReferenceIndex += 1
     } else if (movementType === movements[3]) { // placeholder for feature 'skipDown'
       return
@@ -94,8 +89,6 @@ function moveShape(movementType,isRotation = false) {
     }
 
     currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-
-    console.log('currentRotation is: ' + currentRotation)
   
     addCurrentClass()
   }
@@ -152,6 +145,7 @@ function dropCheck(movementType) {
 
 function isTopCollision(rotation) {
   return rotation.some( (cellIndex) => {
+    console.log(cellIndex)
     return (cellIndex < 0)
   })
 }
@@ -179,11 +173,80 @@ function isSidesCollision(rotation) {
     return cellIndex >= 0 && cellIndex < width * height
   })
 
+// make cellIndex the referenceIndex?
   return filteredInRangeCells.some( (cellIndex) => {
     return ( (cellIndex % width < currentShape.leftBoundaryReferenceRemainder) ||
     (cellIndex % width > currentShape.rightBoundaryReferenceRemainder) )
   })
 }
+
+function sideEdgesCorrection(currentRotation,predictiveRotation) {
+  // ! if the predictive shape has gone too far left, shift it +1
+  const rightCorrection = currentRotation.some( (cellIndex,index) => {
+    const currentRemainder = currentRotation[index] % width
+    const predictiveRemainder = predictiveRotation[index] % width 
+
+    return (currentRemainder < 2) && (predictiveRemainder > 7)
+  })
+
+  // ! if the predictive shape has gone too far right, shift it -1
+  const leftCorrection = currentRotation.some( (cellIndex,index) => {
+    const currentRemainder = currentRotation[index] % width
+    const predictiveRemainder = predictiveRotation[index] % width 
+
+    return (predictiveRemainder < 2) && (currentRemainder > 7)
+  })
+
+// if dead cell remainder index is < 
+
+  if (rightCorrection) {
+    return 1
+  } if (leftCorrection) {
+    return -1
+  } else {
+    return false
+  }
+}
+
+function upDownCorrection(currentRotation,predictiveRotation) {
+
+
+
+  
+  // ! if the predictive shape has gone too far down, shift it -width
+  const upCorrection = 
+  
+  
+  
+  currentRotation.some( (cellIndex,index) => {
+    const currentRemainder = currentRotation[index] % width
+    const predictiveRemainder = predictiveRotation[index] % width 
+
+    // if deadshapeindex < cellIndex - cellIndexRemainder
+    // if deadshape index >  ((width - 1) - cellindex remainder) + c
+
+    return (currentRemainder < 2) && (predictiveRemainder > 7)
+  })
+
+  // ! if the predictive shape has gone too far right, shift it -1
+  const downCorrection = currentRotation.some( (cellIndex,index) => {
+    const currentRemainder = currentRotation[index] % width
+    const predictiveRemainder = predictiveRotation[index] % width 
+
+    return (predictiveRemainder < 2) && (currentRemainder > 7)
+  })
+
+// if dead cell remainder index is < 
+
+  if (rightCorrection) {
+    return 1
+  } if (leftCorrection) {
+    return -1
+  } else {
+    return false
+  }
+}
+
 
 function evaluateConditions(array) {
   const booleanArray = []
@@ -218,7 +281,7 @@ function rotationBoundaryCheck() {
   // ! define the next rotation variables to make collision checks
   let predictiveRotationIndex // outputs which rotation
   let predictiveRotation // outputs the chosen rotation index
-  let predictiveReferenceIndex
+  let predictiveReferenceIndex = currentShape.currentReferenceIndex
   let collisionErrors = 0
   let predictionCorrectionCount = 0
 
@@ -228,8 +291,9 @@ function rotationBoundaryCheck() {
     predictiveRotationIndex = currentShape.currentRotationIndex + 1
   }
 
+  const switchToSide = currentShape.getCurrentSide(predictiveRotationIndex)
+
   predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
-  console.log(predictiveRotation)
 
   // ! separate variables for different collision detections, which will be treated differently
   const topCollisionResult = isTopCollision(predictiveRotation)
@@ -255,6 +319,8 @@ function rotationBoundaryCheck() {
     
     if (topCollisionResult) {
       console.log('__inside topCollisionResult')
+      console.log('currentRotation: ' + currentRotation)
+      console.log('predictiveRotation: ' + predictiveRotation)
       removeCurrentClass()
       currentShape.currentReferenceIndex = (currentShape.currentReferenceIndex % width) + (currentShape.topBoundaryReferenceHeight)
       currentShape.currentRotationIndex = predictiveRotationIndex
@@ -274,30 +340,126 @@ function rotationBoundaryCheck() {
 
       console.log('__inside collisionDeadShapeResult')
 
-      const switchToSide = currentShape.getCurrentSide(predictiveRotationIndex)      
-
       let isCollision = true
+      let loopCounts = 0
       
       // ! entering a while loop to calculate how much a shape has to shift
       while (isCollision) {
 
-        // ! for each cells of the predictive shape which is in collision with a dead shape
-        predictiveRotation.forEach( (cellIndex) => {
-          if (cells[cellIndex].classList.contains('dead')) {
+        predictiveRotation.forEach( (deadCellIndex) => {
 
-            // ! if making a vertical shape rotation
-            if ( (switchToSide === rotationSideArray[0]) || (switchToSide === rotationSideArray[1]) ) {
+          if (cells[deadCellIndex].classList.contains('dead')) {
 
-              console.log('__inside TOP/BOTTOM rotation prediction')
+            // ! prediction correction counts the number times that a shape has been moved of 1 increment.
+            if (loopCounts > 2 && correctionOccurence > 2) {
+
+              isCollision = false
+              return
+
+            } else if (loopCounts <= 2 || correctionOccurence <= 2) {
+
+              removeCurrentClass()
+              currentShape.currentReferenceIndex = predictiveReferenceIndex
+              currentShape.currentRotationIndex = predictiveRotationIndex
+              currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+              addCurrentClass()
+
+              isCollision = false
+              return
+
+            } // end of correction counts
+
+              predictiveReferenceIndex = currentShape.currentReferenceIndex
+
+              const resultsArray = []
+
               // ! shift down width steps (collision above)
-              if (cellIndex < currentShape.currentReferenceIndex) {
-                predictiveReferenceIndex = currentShape.currentReferenceIndex + width
+              if (deadCellIndex < (currentShape.currentReferenceIndex - (currentShape.currentReferenceIndex % width)) ) {
+                // predictiveReferenceIndex += width
+                resultsArray.push(width)
               }
-              
+
               // ! shift up width steps (collision below)
-              if (cellIndex > currentShape.currentReferenceIndex) {
-                predictiveReferenceIndex = currentShape.currentReferenceIndex - width
+              if (deadCellIndex > (currentShape.currentReferenceIndex + (width - 1) - (currentShape.currentReferenceIndex % width)) ) {
+                // predictiveReferenceIndex -= width
+                resultsArray.push(-width)
               }
+
+              // ! shift 1 step right if dead cell index is on the left of the reference index 
+              if (deadCellIndex % width < currentShape.currentReferenceIndex % width) {
+                // predictiveReferenceIndex++
+                resultsArray.push(1)
+              }
+
+              // ! shift 1 step left if dead cell index is on the right of the reference index 
+              if (deadCellIndex % width > currentShape.currentReferenceIndex % width) {
+                // predictiveReferenceIndex--
+                resultsArray.push(-1)
+              }
+
+              const allCombinations = []
+
+              // ! if more than 1 result, try combinations for the best outcome
+              if (resultsArray.length > 1) {
+                for (let i = 0; i < resultsArray.length - 1; i++) {
+                  allCombinations.push(resultsArray[i]*2)
+                  for (let j = i + 1; j < resultsArray.length; j++) {
+                    allCombinations.push(resultsArray[i]+resultsArray[j])
+                    allCombinations.push(resultsArray[j]*2)
+                  }
+                }
+              }
+
+              // ! checking combinations
+              resultsArray.forEach( (result) => {
+                predictiveReferenceIndex += result
+                predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+                predictiveRotation.every( (cellIndex,iterationIndex) => {
+
+                  const currentRemainder = currentRotation[iterationIndex] % width
+                  const predictiveRemainder = predictiveRotation[iterationIndex] % width 
+
+                  let leftSideCollision = false
+                  let rightSideCollision = false
+
+                  if ( (currentRemainder < 2) && !(predictiveRemainder > 7) ) {
+                    leftSideCollision = true
+                  }
+
+                  if ( (predictiveRemainder < 2) && (currentRemainder > 7) ) {
+                    rightSideCollision = true
+                  }
+
+                  return (cellIndex > 0) && // ! out of range check
+                  (cellIndex < width * height) && // ! out of range check
+                  !cells[cellIndex].classList.contains('dead') && // ! does not contain dead class check
+                  !leftSideCollision && !rightSideCollision // ! no sideway collisions
+              })
+
+  }
+}
+
+
+
+
+            
+
+
+
+          } // end of if 1
+
+
+      }) // end of dead shape loop
+
+
+     } // end of while loop
+
+
+
+
+            
+
+
 
               predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
               
@@ -305,49 +467,39 @@ function rotationBoundaryCheck() {
                 collisionErrors++
               }
 
-              if (isCollisionDeadShape(predictiveRotation)) {
-                predictionCorrectionCount++
-              }
-
             // ! if making a horizontal shape rotation
-            }  else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
+            } else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
 
               console.log('__inside LEFT/RIGHT rotation prediction')
 
-              // ! shift right 1 steps (collision left)
-              if (cellIndex < currentShape.currentReferenceIndex) {
-                predictiveReferenceIndex = currentShape.currentReferenceIndex + 1
-              }
 
-              // ! shift right 1 steps (collision left)
-              if (cellIndex > currentShape.currentReferenceIndex) {
-                predictiveReferenceIndex = currentShape.currentReferenceIndex - 1
-              }
-
+              
+              // ! recalculate the predictive rotation coordinates
               predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
-              
-              if (isSidesCollision(currentShape,predictiveReferenceIndex)) {
-                collisionErrors++
-              }
-              
-              if (isCollisionDeadShape(predictiveRotation)) {
+
+              // ! checks for lateral collisions and correct
+              const correctionValue = sideEdgesCorrection(currentRotation,predictiveRotation)
+
+              if (correctionValue) {
+                predictiveReferenceIndex += correction
+                predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
                 predictionCorrectionCount++
               }
             }
           }
         })
 
-        // ! make isCollision false to get out of the correction while loop
-        // ! a shape can have up to 2 blocks away from its referenceIndex. so on the prediction correction count, if more than 2 corrections occure, don't rotate the shape
-        // ! collision errors: they occure when a shape correction forces the predictive shape against an edge (but breaking the shape)
-        if (collisionErrors > 0 || predictionCorrectionCount > 2) {
-          isCollision = false
-          return
-        }
+        // ! counts the number of rounds/loops of corrections occured. if more than 2, no correction needs to occure
+        correctionRoundCount++
+
+      }
+
         // ! check if there are still collisions to rectify
         const remainingCollisions = predictiveRotation.filter( (cellIndex) => {
           return cells[cellIndex].classList.contains('dead')
         })
+
+        console.log(remainingCollisions)
 
         // ! if no collisions to fix remain, keep in the while loop and carry on, else update the validated rotations
         if (remainingCollisions.length <= 0) {
@@ -366,27 +518,29 @@ function rotationBoundaryCheck() {
 
       console.log('__inside sidesCollisionResult')
 
-      console.log(leftSideRedTape)
-
       if (leftSideRedTape.includes(currentShape.currentReferenceIndex)) {
         console.log('__inside if 1')
-        currentShape.currentReferenceIndex += ( currentShape.leftBoundaryReferenceRemainder - (currentShape.currentReferenceIndex % width) )
-        currentShape.currentRotationIndex = predictiveRotationIndex
+        predictiveReferenceIndex += ( currentShape.leftBoundaryReferenceRemainder - (currentShape.currentReferenceIndex % width) )
       } else if (rightSideRedTape.includes(currentShape.currentReferenceIndex)) {
         console.log('__inside if 2')
-        currentShape.currentReferenceIndex -= ( width - (currentShape.currentReferenceIndex % width) )
+        predictiveReferenceIndex -= ( width - (currentShape.currentReferenceIndex % width) )
+      }
+
+      predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+
+      if (isCollisionDeadShape(predictiveRotation)) {
+        return
+      } else {
+        removeCurrentClass()
+        currentShape.currentReferenceIndex = predictiveReferenceIndex
         currentShape.currentRotationIndex = predictiveRotationIndex
+        currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+        addCurrentClass()
       }
     }
-
-    currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-
-    addCurrentClass()
-
   } else if (evaluateMultipleCollisions(collisionsArray)) {
     return
   } else {
-    console.log('__inside no collisions at all')
     removeCurrentClass()
     currentShape.currentRotationIndex = predictiveRotationIndex
     currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
@@ -394,6 +548,21 @@ function rotationBoundaryCheck() {
   }
 }
 
+// function getAdjacentCell() {
+  
+//   let adjacentLeft = currentRotation.filter( (cellIndex) => {
+//     return (this.currentReferenceIndex - cellIndex === 1) || false
+//   })
+
+//   let adjacentRight = currentRotation.filter( (cellIndex) => {
+//     return cellIndex - this.currentReferenceIndex === 1 || false
+//   })
+
+//   adjacentLeft[0] === undefined ? adjacentLeft = false : adjacentLeft = adjacentLeft[0]
+//   adjacentRight[0] === undefined ? adjacentRight = false : adjacentRight = adjacentRight[0]
+
+//   return [adjacentLeft,adjacentRight]
+// }
 
 function rowCheckToClear() {
 
@@ -488,6 +657,22 @@ const iShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
+  // getAdjacentCell() {
+  //   const currentRotation = this.rotationsArray(this.currentRotationIndex)
+    
+  //   let adjacentLeft = currentRotation.filter( (cellIndex) => {
+  //     return (this.currentReferenceIndex - cellIndex === 1) || false
+  //   })
+
+  //   let adjacentRight = currentRotation.filter( (cellIndex) => {
+  //     return cellIndex - this.currentReferenceIndex === 1 || false
+  //   })
+
+  //   adjacentLeft[0] === undefined ? adjacentLeft = false : adjacentLeft = adjacentLeft[0]
+  //   adjacentRight[0] === undefined ? adjacentRight = false : adjacentRight = adjacentRight[0]
+
+  //   return [adjacentLeft,adjacentRight]
+  // },
   getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
     if (rotationArrayIndex === 0) {
       return 'rightSide'
@@ -758,7 +943,7 @@ elements.play.addEventListener('click', () => {
     
     console.log('_________start_________')
 
-    isDropCheck = false
+    shapeIsDead = false
     isFirstLine = false
 
     if (dropNewShape) {
@@ -779,14 +964,15 @@ elements.play.addEventListener('click', () => {
       isFirstLine = true
       dropNewShape = false
 
+      // ! defines the side boundaries for the current shape
       sideCollisionBoundaries()
 
-      console.log('dropping new shape')
+      console.log('__dropping new shape__')
     }
 
     if (!isFirstLine){
       dropCheck(movements[0])
-      isDropCheck = true
+      shapeIsDead = true
     }
 
     // rowCheckToClear()
@@ -806,34 +992,37 @@ elements.play.addEventListener('click', () => {
 
 
 
-
-
-  document.addEventListener('keydown', (event) => {
-    // ? Here, would it be better to keep all ifs in series of else ifs or better to keep each separated?
-    // ! If (upArrow key is pressed) && (the end of the shape.rotation() array is reached) {go back to the start of this array}
-    if (event.key === 'ArrowUp') {
-      console.log('____rotating')
-      rotationBoundaryCheck()
-
-      if (isDropCheck) {
-        dropCheck(movements[0])
-        isDropCheck = false
+  if (!shapeIsDead) {
+    document.addEventListener('keydown', (event) => {
+      // ? Here, would it be better to keep all ifs in series of else ifs or better to keep each separated?
+      // ! If (upArrow key is pressed) && (the end of the shape.rotation() array is reached) {go back to the start of this array}
+      if (event.key === 'ArrowUp') {
+        console.log('____rotating')
+        rotationBoundaryCheck()
       }
-    }
-    // ! If (downArrow key is pressed) && (the shape blocks are not on the last line) {drop the shape down}
-    if (event.key === 'ArrowDown') {
-      dropCheck(movements[0])
-    }
+      
+      // ! If (downArrow key is pressed) && (the shape blocks are not on the last line) {drop the shape down}
+      if (event.key === 'ArrowDown') {
+        dropCheck(movements[0])
+      }
+  
+      // ! If (leftArrow key is pressed) && (the shape blocks are not on the left edge) {move the shape left}
+      if (event.key === 'ArrowLeft') {
+        dropCheck(movements[1])
+      }
+  
+      // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
+      if (event.key === 'ArrowRight') {
+        dropCheck(movements[2])
+      }
+  
+    })
+  }
 
-    // ! If (leftArrow key is pressed) && (the shape blocks are not on the left edge) {move the shape left}
-    if (event.key === 'ArrowLeft') {
-      dropCheck(movements[1])
-    }
-
-    // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
-    if (event.key === 'ArrowRight') {
-      dropCheck(movements[2])
-    }
-
-  })
 })
+
+
+
+
+
+
