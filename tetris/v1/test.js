@@ -347,6 +347,112 @@ const iShape = {
 
 
 
+else if (collisionDeadShapeResult) {
+
+  console.log('__inside collisionDeadShapeResult')      
+
+  let isCollision = true
+  
+  // ! entering a while loop to calculate how much a shape has to shift
+  while (isCollision) {
+
+    // ! for each cells of the predictive shape which is in collision with a dead shape
+    predictiveRotation.forEach( (deadCellIndex) => {
+      if (cells[deadCellIndex].classList.contains('dead')) {
+
+        // ! if making a vertical shape rotation
+        if ( (switchToSide === rotationSideArray[0]) || (switchToSide === rotationSideArray[1]) ) {
+
+          console.log('__inside TOP/BOTTOM rotation prediction')
+          // ! shift down width steps (collision above)
+          if (deadCellIndex < currentShape.currentReferenceIndex) {
+            predictiveReferenceIndex = currentShape.currentReferenceIndex + width
+          }
+          
+          // ! shift up width steps (collision below)
+          if (deadCellIndex > currentShape.currentReferenceIndex) {
+            predictiveReferenceIndex = currentShape.currentReferenceIndex - width
+          }
+
+          predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+          
+          if (isBottomCollision(predictiveRotation) || isTopCollision(predictiveRotation)) {
+            collisionErrors++
+          }
+
+          if (isCollisionDeadShape(predictiveRotation)) {
+            predictionCorrectionCount++
+          }
+
+        // ! if making a horizontal shape rotation
+        }  else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
+
+          console.log('__inside LEFT/RIGHT rotation prediction')
+
+          // ! shift right 1 steps (collision left)
+          if (deadCellIndex % width < currentShape.currentReferenceIndex % width) {
+            predictiveReferenceIndex++
+          }
+
+          // ! shift right 1 steps (collision left)
+          if (deadCellIndex % width > currentShape.currentReferenceIndex % width) {
+            predictiveReferenceIndex--
+          }
+          
+          predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+          console.log('currentRotation: ' + currentRotation)
+          console.log('currentReferenceIndex: ' + currentShape.currentReferenceIndex)
+          console.log('predictiveRotation: ' + predictiveRotation)
+
+          if (isSidesCollision(predictiveRotation)) {
+            collisionErrors++
+          }
+          
+          if (isCollisionDeadShape(predictiveRotation)) {
+            predictionCorrectionCount++
+          }
+        }
+      }
+    })
+
+    // ! make isCollision false to get out of the correction while loop
+    // ! a shape can have up to 2 blocks away from its referenceIndex. so on the prediction correction count, if more than 2 corrections occure, don't rotate the shape
+    // ! collision errors: they occure when a shape correction forces the predictive shape against an edge (but breaking the shape)
+    console.log('ive been here')
+    console.log(collisionErrors)
+    console.log(predictionCorrectionCount)
+
+    if (collisionErrors > 0 || predictionCorrectionCount > 2) {
+      isCollision = false
+      return
+    }
+    // ! check if there are still collisions to rectify
+    const remainingCollisions = predictiveRotation.filter( (cellIndex) => {
+      return cells[cellIndex].classList.contains('dead')
+    })
+
+    console.log(remainingCollisions)
+
+    // ! if no collisions to fix remain, keep in the while loop and carry on, else update the validated rotations
+    if (remainingCollisions.length <= 0) {
+      
+      removeCurrentClass()
+      currentShape.currentReferenceIndex = predictiveReferenceIndex
+      currentShape.currentRotationIndex = predictiveRotationIndex
+      currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+      addCurrentClass()
+
+      isCollision = false
+    }
+  }
+
+
+
+
+
+
+
+  
 
 
 
@@ -365,3 +471,190 @@ const iShape = {
 
 
 
+
+  else if (collisionDeadShapeResult) {
+
+    console.log('__inside collisionDeadShapeResult')      
+
+    let isCollision = true
+    
+    // ! entering a while loop to calculate how much a shape has to shift
+    while (isCollision) {
+
+      // ! counts the number of rounds/loops of corrections occured. if more than 2, no correction needs to occure
+      let correctionRoundCount = 0
+      correctionRoundCount++
+
+      // ! prediction correction counts the number times that a shape has been moved of 1 increment.
+      if (predictionCorrectionCount > 2 && correctionRoundCount > 2) {
+        isCollision = false
+        return
+      } else if (predictionCorrectionCount <= 2 &&  correctionRoundCount > 2) {
+
+      }
+
+      // ! if making a vertical shape rotation
+      if ( (switchToSide === rotationSideArray[0]) || (switchToSide === rotationSideArray[1]) ) {
+
+        console.log('__inside TOP/BOTTOM rotation prediction')
+        // ! shift down width steps (collision above)
+        if (cellIndex < currentShape.currentReferenceIndex) {
+          predictiveReferenceIndex = currentShape.currentReferenceIndex + width
+        }
+        
+        // ! shift up width steps (collision below)
+        if (cellIndex > currentShape.currentReferenceIndex) {
+          predictiveReferenceIndex = currentShape.currentReferenceIndex - width
+        }
+
+        predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+        
+        if (isBottomCollision(predictiveRotation) || isTopCollision(predictiveRotation)) {
+          collisionErrors++
+        }
+
+        if (isCollisionDeadShape(predictiveRotation)) {
+          predictionCorrectionCount++
+        }
+
+      // ! if making a horizontal shape rotation
+      }  else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
+
+        console.log('__inside LEFT/RIGHT rotation prediction')
+
+        // ! checks for lateral collisions and corrects
+        const correctionValue = sidewayCorrection(currentRotation,predictiveRotation)
+
+        if (correctionValue) {
+          predictiveReferenceIndex += correction
+          predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+          predictionCorrectionCount++
+        }
+
+        // ! after correction, count if there is still a collision with a dead shape and go for one more round
+        if (isCollisionDeadShape(predictiveRotation)) {
+          predictionCorrectionCount++
+        }
+      }
+    }
+
+      // ! make isCollision false to get out of the correction while loop
+      // ! a shape can have up to 2 blocks away from its referenceIndex. so on the prediction correction count, if more than 2 corrections occure, don't rotate the shape
+      // ! collision errors: they occure when a shape correction forces the predictive shape against an edge (but breaking the shape)
+      console.log('ive been here')
+      console.log(collisionErrors)
+      console.log(predictionCorrectionCount)
+
+      if (collisionErrors > 0 || predictionCorrectionCount > 2) {
+        isCollision = false
+        return
+      }
+      // ! check if there are still collisions to rectify
+      const remainingCollisions = predictiveRotation.filter( (cellIndex) => {
+        return cells[cellIndex].classList.contains('dead')
+      })
+
+      console.log(remainingCollisions)
+
+      // ! if no collisions to fix remain, keep in the while loop and carry on, else update the validated rotations
+      if (remainingCollisions.length <= 0) {
+        
+        removeCurrentClass()
+        currentShape.currentReferenceIndex = predictiveReferenceIndex
+        currentShape.currentRotationIndex = predictiveRotationIndex
+        currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+        addCurrentClass()
+
+        isCollision = false
+      }
+    }
+
+
+
+
+
+
+
+    console.log('__inside collisionDeadShapeResult')
+
+    let isCollision = true
+    let loopCounts = 0
+    
+    // ! entering a while loop to calculate how much a shape has to shift
+    while (isCollision) {
+
+      predictiveRotation.forEach( (deadCellIndex) => {
+
+        if (cells[deadCellIndex].classList.contains('dead')) {
+
+          // ! prediction correction counts the number times that a shape has been moved of 1 increment.
+          if (loopCounts > 2 && correctionOccurence > 2) {
+
+            isCollision = false
+            return
+
+          } else if (loopCounts <= 2 || correctionOccurence <= 2) {
+
+            removeCurrentClass()
+            currentShape.currentReferenceIndex = predictiveReferenceIndex
+            currentShape.currentRotationIndex = predictiveRotationIndex
+            currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+            addCurrentClass()
+
+            isCollision = false
+            return
+
+          } // end of correction counts
+
+          predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+              
+          if (isBottomCollision(predictiveRotation) || isTopCollision(predictiveRotation)) {
+            collisionErrors++
+          }
+
+        // ! if making a horizontal shape rotation
+        } else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
+
+          console.log('__inside LEFT/RIGHT rotation prediction')
+
+
+          
+          // ! recalculate the predictive rotation coordinates
+          predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+
+          // ! checks for lateral collisions and correct
+          const correctionValue = sideEdgesCorrection(currentRotation,predictiveRotation)
+
+          if (correctionValue) {
+            predictiveReferenceIndex += correction
+            predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+            predictionCorrectionCount++
+          }
+        }
+      }
+    })
+
+    // ! counts the number of rounds/loops of corrections occured. if more than 2, no correction needs to occure
+    correctionRoundCount++
+
+  }
+
+    // ! check if there are still collisions to rectify
+    const remainingCollisions = predictiveRotation.filter( (cellIndex) => {
+      return cells[cellIndex].classList.contains('dead')
+    })
+
+    console.log(remainingCollisions)
+
+    // ! if no collisions to fix remain, keep in the while loop and carry on, else update the validated rotations
+    if (remainingCollisions.length <= 0) {
+      
+      removeCurrentClass()
+      currentShape.currentReferenceIndex = predictiveReferenceIndex
+      currentShape.currentRotationIndex = predictiveRotationIndex
+      currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+      addCurrentClass()
+
+      isCollision = false
+    }
+  }

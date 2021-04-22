@@ -90,7 +90,7 @@ function moveShape(movementType,isRotation = false) {
 
     currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
   
-    addCurrentClass()
+    addCurrentClass(currentRotation)
   }
 }
 
@@ -282,8 +282,8 @@ function rotationBoundaryCheck() {
   let predictiveRotationIndex // outputs which rotation
   let predictiveRotation // outputs the chosen rotation index
   let predictiveReferenceIndex = currentShape.currentReferenceIndex
-  let collisionErrors = 0
-  let predictionCorrectionCount = 0
+  // let collisionErrors = 0
+  // let predictionCorrectionCount = 0
 
   if (currentShape.currentRotationIndex >= (currentShape.allRotations(currentShape.currentReferenceIndex).length - 1)) {
     predictiveRotationIndex = 0
@@ -291,7 +291,7 @@ function rotationBoundaryCheck() {
     predictiveRotationIndex = currentShape.currentRotationIndex + 1
   }
 
-  const switchToSide = currentShape.getCurrentSide(predictiveRotationIndex)
+  // const switchToSide = currentShape.getCurrentSide(predictiveRotationIndex)
 
   predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
 
@@ -340,180 +340,93 @@ function rotationBoundaryCheck() {
 
       console.log('__inside collisionDeadShapeResult')
 
-      let isCollision = true
-      let loopCounts = 0
-      
-      // ! entering a while loop to calculate how much a shape has to shift
-      while (isCollision) {
+      const resultsArray = []
 
-        predictiveRotation.forEach( (deadCellIndex) => {
+      predictiveRotation.forEach( (deadCellIndex) => {
+        if (cells[deadCellIndex].classList.contains('dead')) {
 
-          if (cells[deadCellIndex].classList.contains('dead')) {
+          predictiveReferenceIndex = currentShape.currentReferenceIndex
 
-            // ! prediction correction counts the number times that a shape has been moved of 1 increment.
-            if (loopCounts > 2 && correctionOccurence > 2) {
-
-              isCollision = false
-              return
-
-            } else if (loopCounts <= 2 || correctionOccurence <= 2) {
-
-              removeCurrentClass()
-              currentShape.currentReferenceIndex = predictiveReferenceIndex
-              currentShape.currentRotationIndex = predictiveRotationIndex
-              currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-              addCurrentClass()
-
-              isCollision = false
-              return
-
-            } // end of correction counts
-
-              predictiveReferenceIndex = currentShape.currentReferenceIndex
-
-              const resultsArray = []
-
-              // ! shift down width steps (collision above)
-              if (deadCellIndex < (currentShape.currentReferenceIndex - (currentShape.currentReferenceIndex % width)) ) {
-                // predictiveReferenceIndex += width
-                resultsArray.push(width)
-              }
-
-              // ! shift up width steps (collision below)
-              if (deadCellIndex > (currentShape.currentReferenceIndex + (width - 1) - (currentShape.currentReferenceIndex % width)) ) {
-                // predictiveReferenceIndex -= width
-                resultsArray.push(-width)
-              }
-
-              // ! shift 1 step right if dead cell index is on the left of the reference index 
-              if (deadCellIndex % width < currentShape.currentReferenceIndex % width) {
-                // predictiveReferenceIndex++
-                resultsArray.push(1)
-              }
-
-              // ! shift 1 step left if dead cell index is on the right of the reference index 
-              if (deadCellIndex % width > currentShape.currentReferenceIndex % width) {
-                // predictiveReferenceIndex--
-                resultsArray.push(-1)
-              }
-
-              const allCombinations = []
-
-              // ! if more than 1 result, try combinations for the best outcome
-              if (resultsArray.length > 1) {
-                for (let i = 0; i < resultsArray.length - 1; i++) {
-                  allCombinations.push(resultsArray[i]*2)
-                  for (let j = i + 1; j < resultsArray.length; j++) {
-                    allCombinations.push(resultsArray[i]+resultsArray[j])
-                    allCombinations.push(resultsArray[j]*2)
-                  }
-                }
-              }
-
-              // ! checking combinations
-              resultsArray.forEach( (result) => {
-                predictiveReferenceIndex += result
-                predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
-                predictiveRotation.every( (cellIndex,iterationIndex) => {
-
-                  const currentRemainder = currentRotation[iterationIndex] % width
-                  const predictiveRemainder = predictiveRotation[iterationIndex] % width 
-
-                  let leftSideCollision = false
-                  let rightSideCollision = false
-
-                  if ( (currentRemainder < 2) && !(predictiveRemainder > 7) ) {
-                    leftSideCollision = true
-                  }
-
-                  if ( (predictiveRemainder < 2) && (currentRemainder > 7) ) {
-                    rightSideCollision = true
-                  }
-
-                  return (cellIndex > 0) && // ! out of range check
-                  (cellIndex < width * height) && // ! out of range check
-                  !cells[cellIndex].classList.contains('dead') && // ! does not contain dead class check
-                  !leftSideCollision && !rightSideCollision // ! no sideway collisions
-              })
-
-  }
-}
-
-
-
-
-            
-
-
-
-          } // end of if 1
-
-
-      }) // end of dead shape loop
-
-
-     } // end of while loop
-
-
-
-
-            
-
-
-
-              predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
-              
-              if (isBottomCollision(predictiveRotation) || isTopCollision(predictiveRotation)) {
-                collisionErrors++
-              }
-
-            // ! if making a horizontal shape rotation
-            } else if ( (switchToSide === rotationSideArray[2]) || (switchToSide === rotationSideArray[3]) ) {
-
-              console.log('__inside LEFT/RIGHT rotation prediction')
-
-
-              
-              // ! recalculate the predictive rotation coordinates
-              predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
-
-              // ! checks for lateral collisions and correct
-              const correctionValue = sideEdgesCorrection(currentRotation,predictiveRotation)
-
-              if (correctionValue) {
-                predictiveReferenceIndex += correction
-                predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
-                predictionCorrectionCount++
-              }
-            }
+          // ! shift down width steps (collision above)
+          if (deadCellIndex < (currentShape.currentReferenceIndex - (currentShape.currentReferenceIndex % width)) ) {
+            // predictiveReferenceIndex += width
+            resultsArray.push(width)
           }
-        })
 
-        // ! counts the number of rounds/loops of corrections occured. if more than 2, no correction needs to occure
-        correctionRoundCount++
+          // ! shift up width steps (collision below)
+          if (deadCellIndex > (currentShape.currentReferenceIndex + (width - 1) - (currentShape.currentReferenceIndex % width)) ) {
+            // predictiveReferenceIndex -= width
+            resultsArray.push(-width)
+          }
 
+          // ! shift 1 step right if dead cell index is on the left of the reference index 
+          if (deadCellIndex % width < currentShape.currentReferenceIndex % width) {
+            // predictiveReferenceIndex++
+            resultsArray.push(1)
+          }
+
+          // ! shift 1 step left if dead cell index is on the right of the reference index 
+          if (deadCellIndex % width > currentShape.currentReferenceIndex % width) {
+            // predictiveReferenceIndex--
+            resultsArray.push(-1)
+          }
+        }
+      })
+
+      const allCombinations = []
+
+      resultsArray.map( (initialCombination) => {
+        allCombinations.push(initialCombination)
+      })
+
+      // ! if more than 1 result, try combinations for the best outcome
+      if (resultsArray.length > 1) {
+        for (let i = 0; i < resultsArray.length - 1; i++) {
+          allCombinations.push(resultsArray[i]*2)
+          for (let j = i + 1; j < resultsArray.length; j++) {
+            allCombinations.push(resultsArray[i] + resultsArray[j])
+            allCombinations.push(resultsArray[j] * 2)
+          }
+        }
       }
 
-        // ! check if there are still collisions to rectify
-        const remainingCollisions = predictiveRotation.filter( (cellIndex) => {
-          return cells[cellIndex].classList.contains('dead')
+      // ! checking combinations
+      allCombinations.forEach( (result) => {
+        predictiveReferenceIndex += result
+        predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+        
+        const winningCombination = predictiveRotation.every( (cellIndex,iterationIndex) => {
+
+          const currentRemainder = currentRotation[iterationIndex] % width
+          const predictiveRemainder = predictiveRotation[iterationIndex] % width 
+
+          let leftSideCollision = false
+          let rightSideCollision = false
+
+          if ( (currentRemainder < 2) && !(predictiveRemainder > 7) ) {
+            leftSideCollision = true
+          }
+
+          if ( (predictiveRemainder < 2) && (currentRemainder > 7) ) {
+            rightSideCollision = true
+          }
+
+          return (cellIndex > 0) && // ! out of range check
+          (cellIndex < width * height) && // ! out of range check
+          !cells[cellIndex].classList.contains('dead') && // ! does not contain dead class check
+          !leftSideCollision && !rightSideCollision // ! no sideway collisions
         })
 
-        console.log(remainingCollisions)
-
-        // ! if no collisions to fix remain, keep in the while loop and carry on, else update the validated rotations
-        if (remainingCollisions.length <= 0) {
-          
+        if (winningCombination) {
           removeCurrentClass()
           currentShape.currentReferenceIndex = predictiveReferenceIndex
           currentShape.currentRotationIndex = predictiveRotationIndex
           currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
           addCurrentClass()
-
-          isCollision = false
+        } else {
+          return
         }
-      }
-      
+      })
     } else if (sidesCollisionResult) {
 
       console.log('__inside sidesCollisionResult')
@@ -657,22 +570,6 @@ const iShape = {
   rotationsArray(arrayIndex) {
     return this.allRotations(this.currentReferenceIndex)[arrayIndex]
   },
-  // getAdjacentCell() {
-  //   const currentRotation = this.rotationsArray(this.currentRotationIndex)
-    
-  //   let adjacentLeft = currentRotation.filter( (cellIndex) => {
-  //     return (this.currentReferenceIndex - cellIndex === 1) || false
-  //   })
-
-  //   let adjacentRight = currentRotation.filter( (cellIndex) => {
-  //     return cellIndex - this.currentReferenceIndex === 1 || false
-  //   })
-
-  //   adjacentLeft[0] === undefined ? adjacentLeft = false : adjacentLeft = adjacentLeft[0]
-  //   adjacentRight[0] === undefined ? adjacentRight = false : adjacentRight = adjacentRight[0]
-
-  //   return [adjacentLeft,adjacentRight]
-  // },
   getCurrentSide(rotationArrayIndex = this.currentRotationIndex) {
     if (rotationArrayIndex === 0) {
       return 'rightSide'
@@ -915,11 +812,11 @@ const sReverseShape = {
 }
 
 // const shapesArray = [iShape,tShape,oShape,jShape,jReverseShape,sShape,sReverseShape]
-const shapesArray = [iShape]
+// const shapesArray = [iShape]
 // const shapesArray = [tShape]
 // const shapesArray = [oShape]
-// const shapesArray = [jShape]
-// const shapesArray = [jReverseShape]
+// const shapesArray = [jShape] // ! needs fixing
+// const shapesArray = [jReverseShape] // ! needs fixing
 // const shapesArray = [sShape]
 // const shapesArray = [sReverseShape]
 
