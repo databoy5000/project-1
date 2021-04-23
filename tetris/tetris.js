@@ -814,6 +814,7 @@ const playerScoring = {
 
 elements.audioPlayer.src = 'sounds/Blue Hawaii - No One Like You.mp3'
 elements.audioPlayer.play()
+// ? does the below loop?
 elements.audioPlayer.loop = true
 
 elements.play.addEventListener('click', () => {
