@@ -13,7 +13,9 @@ let intervalID = 0
 
 let currentShape = {}
 let currentRotation = []
+let nextShape = {}
 let isFirstLine = true
+let isFirstShape = true
 
 let isPaused = false // ! variable for paused game
 
@@ -25,20 +27,40 @@ let pauseEventFunctions = true
 
 // ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
 // ! Global functions
-function generateNewShape() {
+function generateNewShape(isCurrentShape) {
   const randomShapeIndex = Math.floor(Math.random() * shapesArray.length)
-  const currentShape = shapesArray[randomShapeIndex]
+  
 
-  currentShape.currentReferenceIndex = currentShape.startIndex
 
-  currentShape.currentRotationIndex = 0
-  currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+  if (isCurrentShape) {
+    const currentShape = shapesArray[randomShapeIndex]
 
-  currentRotation.forEach( (cellIndex) => {
-    cells[cellIndex].classList.add(currentShape.currentClass)
-  })
+    currentShape.currentReferenceIndex = currentShape.startIndex
 
-  return currentShape
+    currentShape.currentRotationIndex = 0
+    currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+  
+    currentRotation.forEach( (cellIndex) => {
+      cells[cellIndex].classList.add(currentShape.currentClass)
+    })
+  
+    return currentShape
+    
+  } else if (!isCurrentShape) {
+
+    const nextShape = shapesArray[randomShapeIndex]
+
+    nextShape.currentReferenceIndex = nextShape.startIndex
+    nextShape.currentRotationIndex = 0
+    // currentRotation = nextShape.rotationsArray(nextShape.currentRotationIndex)
+  
+    // currentRotation.forEach( (cellIndex) => {
+    //   cells[cellIndex].classList.add(nextShape.currentClass)
+    // })
+  
+    return nextShape
+  }
+
 }
 
 function removeCurrentClass(rotation = currentRotation) {
@@ -485,6 +507,7 @@ const elements = {
   lines: document.querySelector('#lines'),
   score: document.querySelector('#score'),
   audioPlayer: document.querySelector('#audio'),
+  nextShape: document.querySelector('#next-shape'),
 }
 
 // ! Grid Properties/elements
@@ -501,6 +524,19 @@ for (let index = 0; index < width * height; index++) {
   // div.innerHTML = index
   cells.push(div)
 }
+
+// // ! Grid Properties/elements
+// elements.nextShape.style.width = `${width * 30}px`
+// elements.nextShape.style.height = `${height * 30}px`
+// const nextShapeCells = []
+
+// // ! Generate the grid
+// for (let index = 0; index <= 7 * 7; index++) {
+//   const div = document.createElement('div')
+//   elements.nextShape.appendChild(div)
+//   div.innerHTML = index
+//   nextShapeCells.push(div)
+// }
 
 // ! Shapes objects & array
 const iShape = {
@@ -811,12 +847,6 @@ const playerScoring = {
   },
 }
 
-
-elements.audioPlayer.src = 'sounds/Blue Hawaii - No One Like You.mp3'
-elements.audioPlayer.play()
-// ? does the below loop?
-elements.audioPlayer.loop = true
-
 elements.play.addEventListener('click', () => {
 
   // ! Prevent intervalIDs to loop on themsleves
@@ -828,6 +858,11 @@ elements.play.addEventListener('click', () => {
   cells.forEach( (cell) => {
     cell.removeAttribute('class')
   })
+
+  elements.audioPlayer.src = 'sounds/Blue Hawaii - No One Like You.mp3'
+  elements.audioPlayer.play()
+  // ? does the below loop?
+  elements.audioPlayer.loop = true
 
   intervalID = setInterval( () => {
 
@@ -849,9 +884,21 @@ elements.play.addEventListener('click', () => {
 
       isFirstLine = false
 
+
       if (dropNewShape) {
 
-        currentShape = generateNewShape()
+        if (isFirstShape) {
+          currentShape = generateNewShape(true)
+          nextShape = generateNewShape(false)
+          isFirstShape = false
+        } else {
+          currentShape = nextShape
+          currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+          currentRotation.forEach( (cellIndex) => {
+            cells[cellIndex].classList.add(currentShape.currentClass)
+          })
+          nextShape = generateNewShape(false)
+        }
 
         // ! toggle on to disable functions in eventListeners
         // pauseEventFunctions = false
@@ -948,6 +995,7 @@ elements.restart.addEventListener('click', () => {
   currentShape = {}
   currentRotation = []
   isFirstLine = true
+  isFirstShape = true
   isPaused = false
   fullRows = []
   pauseEventFunctions = true
