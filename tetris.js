@@ -24,9 +24,14 @@ let fullRows = []
 
 let pauseEventFunctions = true
 
+const audioTunes = ['sounds/Blue Hawaii - No One Like You.mp3','sounds/Marie Davidson & LŒil Nu - Renegade Breakdown.mp3','sounds/Blue Hawaii - Tenderness.mp3']
+let audioLoop = true
+let tuneIndex = 0
+
 
 // ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
 // ! Global functions
+
 function generateNewShape(isCurrentShape) {
   const randomShapeIndex = Math.floor(Math.random() * shapesArray.length)
   
@@ -849,10 +854,16 @@ elements.play.addEventListener('click', () => {
     cell.removeAttribute('class')
   })
 
-  elements.audioPlayer.src = 'sounds/Blue Hawaii - No One Like You.mp3'
-  elements.audioPlayer.play()
-  // ? does the below loop?
-  elements.audioPlayer.loop = true
+  if (audioLoop) {
+    tuneIndex = 0
+    elements.audioPlayer.src = audioTunes[tuneIndex]
+    elements.audioPlayer.play()
+    tuneIndex++
+    if (tuneIndex >= audioTunes.length) {
+      tuneIndex = 0
+    }
+  }
+
 
   intervalID = setInterval( () => {
 
@@ -882,28 +893,13 @@ elements.play.addEventListener('click', () => {
           nextShape = generateNewShape(false)
           isFirstShape = false
         } else {
-          console.log('currentRotation: ' + currentRotation)
-          console.log(currentShape)
-          console.log(nextShape.currentReferenceIndex)
-          console.log(nextShape)
-          
-
           currentShape = nextShape
           currentShape.currentReferenceIndex = currentShape.startIndex
           currentShape.currentRotationIndex = 0
           currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-          
-
-          console.log('currentRotation: ' + currentRotation)
-          console.log(currentShape)
-          console.log(nextShape.currentReferenceIndex)
-          console.log(nextShape)
-
           addCurrentClass(currentRotation)
 
           nextShape = generateNewShape(false)
-
-
         }
 
         // ! toggle on to disable functions in eventListeners
