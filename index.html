@@ -5,39 +5,49 @@
   <link rel="stylesheet" type="text/css" href="./style.css">
   <script defer src="./tetris.js"></script>
 </head>
+
 <body>
-  <div id="left-page">
-    <div id="buttons">
-      <button id="play">Play Tetris!</button>
-      <button id="pause">Pause Game</button>
-      <button id="restart">Restart</button>
+  <header>
+    <h1>Le Space Tetraminos</h1>
+  </header>
+
+  <main>
+    <div id="left-page">
+      <div id="buttons">
+        <button id="play">Play Tetris!</button>
+        <button id="pause">Pause Game</button>
+        <button id="restart">Restart</button>
+        <button id="toggle-music">Toggle Music On</button>
+      </div>
+      <!-- <div id='instructions'>
+        <h6>Instructions</h6>
+        <p><span>Up</span>: Rotation</p>
+        <p><span>Left/Right</span>: Move Sideways</p>
+        <p><span>Down</span>: Shift Down</p>
+        <p><span>Spacebar</span>: Skip Down (not working yet)</p>
+      </div> -->
     </div>
-    <div id='instructions'>
-      <h6>Instructions</h6>
-      <p><span>Up</span>: Rotation</p>
-      <p><span>Left/Right</span>: Move Sideways</p>
-      <p><span>Down</span>: Shift Down</p>
-      <p><span>Spacebar</span>: Skip Down (not working yet)</p>
+    <div id="grid"></div>
+    <div id="right-page">
+      <div id="next-shape"></div>
+      <div id="scoreboard">
+        <section class="level">
+          <p class="level">Level</p>
+          <p id="level">0</p>
+        </section>
+        <section class="lines">
+          <p class="lines">Lines</p>
+          <p id="lines">0</p>
+        </section>
+        <section class="score">
+          <p class="score">Score</p>
+          <p id="score">0</p>
+        </section>
+      </div>
     </div>
-  </div>
-  <div id="grid"></div>
-  <div id="right-page">
-    <div id="next-shape"></div>
-    <div id="scoreboard">
-      <section class="level">
-        <p class="level">Level</p>
-        <p id="level"></p>
-      </section>
-      <section class="lines">
-        <p class="lines">Lines</p>
-        <p id="lines"></p>
-      </section>
-      <section class="score">
-        <p class="score">Score</p>
-        <p id="score"></p>
-      </section>
-    </div>
-  </div>
+  </main>
+  
+
   <audio id="audio" src="#"></audio>
 </body>
 </html>

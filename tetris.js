@@ -508,8 +508,8 @@ const elements = {
 // ! Grid Properties/elements
 const width = 10
 const height = 20
-elements.grid.style.width = `${width * 30}px`
-elements.grid.style.height = `${height * 30}px`
+// elements.grid.style.width = `${width * 30}px`
+// elements.grid.style.height = `${height * 30}px`
 const cells = []
 
 // ! Generate the grid
@@ -520,24 +520,25 @@ for (let index = 0; index < width * height; index++) {
   cells.push(div)
 }
 
-// // ! Grid Properties/elements
+// ! Grid Properties/elements
 // elements.nextShape.style.width = `${width * 30}px`
 // elements.nextShape.style.height = `${height * 30}px`
-// const nextShapeCells = []
+const nextShapeCells = []
 
-// // ! Generate the grid
-// for (let index = 0; index <= 7 * 7; index++) {
-//   const div = document.createElement('div')
-//   elements.nextShape.appendChild(div)
-//   div.innerHTML = index
-//   nextShapeCells.push(div)
-// }
+// ! Generate the grid
+for (let index = 0; index < 5 * 4; index++) {
+  const div = document.createElement('div')
+  elements.nextShape.appendChild(div)
+  // div.innerHTML = index
+  nextShapeCells.push(div)
+}
 
 // ! Shapes objects & array
 const iShape = {
   startIndex: 5,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
+  nextShapeReferenceIndex: [8,9,10,11],
   currentClass: 'i',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -561,6 +562,7 @@ const oShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
+  nextShapeReferenceIndex: [9,10,13,14],
   currentClass: 'o',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -581,6 +583,7 @@ const tShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
+  nextShapeReferenceIndex: [6,9,10,11],
   currentClass: 't',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -610,6 +613,7 @@ const jShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
+  nextShapeReferenceIndex: [8,9,10,14],
   currentClass: 'j',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -639,6 +643,7 @@ const jReverseShape = {
   startIndex: 15,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
+  nextShapeReferenceIndex: [9,10,11,13],
   currentClass: 'j-reverse',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -668,6 +673,7 @@ const sShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
+  nextShapeReferenceIndex: [9,10,12,13],
   currentClass: 's',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -691,6 +697,7 @@ const sReverseShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
+  nextShapeReferenceIndex: [9,10,14,15],
   currentClass: 's-reverse',
   deadClass: 'dead',
   leftSide(referenceIndex) {
@@ -864,7 +871,6 @@ elements.play.addEventListener('click', () => {
     }
   }
 
-
   intervalID = setInterval( () => {
 
     // ? Why does VScode want me to stick a comma at the end of the currentShape declaration?
@@ -892,6 +898,16 @@ elements.play.addEventListener('click', () => {
           currentShape = generateNewShape(true)
           nextShape = generateNewShape(false)
           isFirstShape = false
+
+          nextShapeCells.forEach( (cell) => {
+            cell.removeAttribute('class')
+          })
+
+          nextShape.nextShapeReferenceIndex.forEach( cellIndex => {
+            console.log(cellIndex)
+            nextShapeCells[cellIndex].classList.add(nextShape.currentClass)
+          })
+
         } else {
           currentShape = nextShape
           currentShape.currentReferenceIndex = currentShape.startIndex
@@ -899,7 +915,16 @@ elements.play.addEventListener('click', () => {
           currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
           addCurrentClass(currentRotation)
 
+          nextShapeCells.forEach( (cell) => {
+            cell.removeAttribute('class')
+          })
+
           nextShape = generateNewShape(false)
+
+          nextShape.nextShapeReferenceIndex.forEach( cellIndex => {
+            console.log(cellIndex)
+            nextShapeCells[cellIndex].classList.add(nextShape.currentClass)
+          })
         }
 
         // ! toggle on to disable functions in eventListeners
