@@ -1,0 +1,133 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  margin: 0;
+  background-image: url(./images/icecream.png);
+  /* background-color: black; */
+  align-content: space-around;
+  /* margin-left: 100px; */
+}
+
+#grid {
+  display: flex;
+  flex-direction: row;
+  /* flex: 1; */
+  border: 10px solid;
+  border-image-slice: 1;
+  border-width: 5px;
+  border-image-source: linear-gradient(to left, #743ad5, #d53a9d);
+  /* border-radius: 90px; */
+  flex-wrap: wrap;
+  background-color: white;
+  margin: 20px;
+}
+
+#grid div {
+  width: 10%;
+  height: 5%;
+  border: 1px solid black;
+}
+
+#buttons {
+  display: flex;
+  flex-direction: column;
+  margin-right: 100px;
+  /* flex: 1.5; */
+  justify-content: center;
+  align-items: center;
+  /* margin-right: ; */
+  justify-content: space-around;
+  align-items: flex-start;
+  align-content: space-between;
+}
+
+button {
+  display: inline-block;
+  /* flex: 5; */
+  width: 180px;
+  height: 40px;
+  border: 2px solid #7B113A;
+  border-radius: 20px;
+  color: white;
+  background-color: #845460;
+  font-weight: bold;
+  font-size: 20px;
+  margin: 10px;
+}
+
+#scoreboard {
+  /* border: 2px solid black; */
+  display: flex;
+  flex-direction: column;
+  color: white;
+  background-color: #845460;
+  border-radius: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  width: 300px;
+  height: 400px;
+  padding: 10px 40px;
+  margin-left: 40px;
+
+}
+
+section.level, section.lines, section.score {
+  border: 2px solid black;
+  border-radius: 10px;
+  height: 200px;
+  width: 200px;
+  margin: 10px;
+  text-align: center;
+}
+
+p.level, p.lines, p.score {
+  /* justify-content: center;
+  align-content: center;
+  align-items: center; */
+  color: white;
+  text-align: center;
+}
+
+.i {
+  /* background-image: url(./images/blue.png); */
+  background-color: turquoise;
+}
+
+.t {
+  /* background-image: url(./images/red.png); */
+  background-color: purple;
+}
+
+.o {
+  /* background-image: url(./images/red.jpeg); */
+  background-color: yellow;
+}
+
+.j {
+  /* background-image: ; */
+  background-color: blue;
+}
+
+.j-reverse {
+  background-color: orange;
+}
+
+.s {
+  background-color: green;
+}
+
+.s-reverse {
+  background-color: red;
+}
+
+.dead {
+  background-color: black;
+}
+

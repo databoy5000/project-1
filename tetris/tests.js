@@ -5,6 +5,7 @@ const elements = {
   grid: document.querySelector('#grid'),
   pause: document.querySelector('#pause'),
   resume: document.querySelector('#resume'),
+
 }
 
   elements.pause.addEventListener('click', event => {
