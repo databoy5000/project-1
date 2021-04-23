@@ -30,14 +30,12 @@ let pauseEventFunctions = true
 function generateNewShape(isCurrentShape) {
   const randomShapeIndex = Math.floor(Math.random() * shapesArray.length)
   
-
-
   if (isCurrentShape) {
     const currentShape = shapesArray[randomShapeIndex]
 
     currentShape.currentReferenceIndex = currentShape.startIndex
-
     currentShape.currentRotationIndex = 0
+
     currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
   
     currentRotation.forEach( (cellIndex) => {
@@ -49,14 +47,6 @@ function generateNewShape(isCurrentShape) {
   } else if (!isCurrentShape) {
 
     const nextShape = shapesArray[randomShapeIndex]
-
-    nextShape.currentReferenceIndex = nextShape.startIndex
-    nextShape.currentRotationIndex = 0
-    // currentRotation = nextShape.rotationsArray(nextShape.currentRotationIndex)
-  
-    // currentRotation.forEach( (cellIndex) => {
-    //   cells[cellIndex].classList.add(nextShape.currentClass)
-    // })
   
     return nextShape
   }
@@ -892,12 +882,28 @@ elements.play.addEventListener('click', () => {
           nextShape = generateNewShape(false)
           isFirstShape = false
         } else {
+          console.log('currentRotation: ' + currentRotation)
+          console.log(currentShape)
+          console.log(nextShape.currentReferenceIndex)
+          console.log(nextShape)
+          
+
           currentShape = nextShape
+          currentShape.currentReferenceIndex = currentShape.startIndex
+          currentShape.currentRotationIndex = 0
           currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-          currentRotation.forEach( (cellIndex) => {
-            cells[cellIndex].classList.add(currentShape.currentClass)
-          })
+          
+
+          console.log('currentRotation: ' + currentRotation)
+          console.log(currentShape)
+          console.log(nextShape.currentReferenceIndex)
+          console.log(nextShape)
+
+          addCurrentClass(currentRotation)
+
           nextShape = generateNewShape(false)
+
+
         }
 
         // ! toggle on to disable functions in eventListeners
