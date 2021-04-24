@@ -6,7 +6,6 @@
 
 // ! Other variables declaration
 const movements = ['down','left','right','skipDown']
-const deadClasses = ['i-dead','t-dead','o-dead','j-dead','j-reverse-dead','s-dead','s-reverse-dead']
 
 let dropNewShape = true
 let intervalID = 0
@@ -17,21 +16,26 @@ let nextShape = {}
 let isFirstLine = true
 let isFirstShape = true
 
-let isPaused = false // ! variable for paused game
+let isPaused = true
+let newGame = true
 
 // ! rows full of dead shapes
 let fullRows = []
 
 let pauseEventFunctions = true
 
-const audioTunes = ['sounds/Blue Hawaii - No One Like You.mp3','sounds/Marie Davidson & LŒil Nu - Renegade Breakdown.mp3','sounds/Blue Hawaii - Tenderness.mp3']
-let audioLoop = true
+const audioTunes = ['sounds/Blue Hawaii - No One Like You.mp3','sounds/Marie Davidson & LŒil Nu - Renegade Breakdown.mp3']
+let playAudio = false
 let tuneIndex = 0
 
+// ! hard drop prediction variables
+// let hardDrop = false
+// const hdPredictionClass = 'hardDropDisplay'
+// let hdPredictiveReferenceIndex
+// let hdPredictiveRotation
 
 // ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
 // ! Global functions
-
 function generateNewShape(isCurrentShape) {
   const randomShapeIndex = Math.floor(Math.random() * shapesArray.length)
   
@@ -59,8 +63,6 @@ function generateNewShape(isCurrentShape) {
 }
 
 function removeCurrentClass(rotation = currentRotation) {
-  console.log('pauseEventFunctions: ' + pauseEventFunctions)
-  console.log('rotation: ' + rotation)
   return rotation.forEach( (cellIndex) => {
     cells[cellIndex].removeAttribute('class')
   })
@@ -135,15 +137,12 @@ function dropCheck(movementType) {
     moveShape(false)
     currentShape.currentReferenceIndex = null
     dropNewShape = true
-    console.log('pauseEventFunctions: ' + pauseEventFunctions)
     pauseEventFunctions = true
-    console.log('pauseEventFunctions: ' + pauseEventFunctions)
   }
 }
 
 function isTopCollision(rotation) {
   return rotation.some( (cellIndex) => {
-    console.log(cellIndex)
     return (cellIndex < 0)
   })
 }
@@ -221,11 +220,9 @@ function sideCorrection(currentRotation = currentRotation,subPredictiveRotationI
     })
 
     if (rightCorrection) {
-      // correctionValue++
       subPredictiveReferenceIndex++
       subPredictiveRotation = currentShape.predictiveRotationCoordinates(subPredictiveReferenceIndex,subPredictiveRotationIndex)
     } else if (leftCorrection) {
-      // correctionValue--
       subPredictiveReferenceIndex--
       subPredictiveRotation = currentShape.predictiveRotationCoordinates(subPredictiveReferenceIndex,subPredictiveRotationIndex)
     } else {
@@ -308,26 +305,26 @@ function rotationBoundaryCheck() {
 
   // ! separate variables for different collision detections, which will be treated differently
   const topCollisionResult = isTopCollision(predictiveRotation)
-  console.log('topCollisionResult: ' + topCollisionResult)
+  // console.log('topCollisionResult: ' + topCollisionResult)
 
   const bottomCollisionResult = isBottomCollision(predictiveRotation)
-  console.log('bottomCollisionResult: ' + bottomCollisionResult)
+  // console.log('bottomCollisionResult: ' + bottomCollisionResult)
 
   const collisionDeadShapeResult = isCollisionDeadShape(predictiveRotation)
-  console.log('collisionDeadShapeResult: ' + collisionDeadShapeResult)
+  // console.log('collisionDeadShapeResult: ' + collisionDeadShapeResult)
 
   const sidesCollisionResult = isSidesCollision(currentRotation,predictiveRotation)
-  console.log('sidesCollisionResult: ' + sidesCollisionResult)
+  // console.log('sidesCollisionResult: ' + sidesCollisionResult)
 
   const collisionsArray = [topCollisionResult,bottomCollisionResult,collisionDeadShapeResult,sidesCollisionResult]
 
-  console.log('evaluateConditions: ' + evaluateConditions(collisionsArray))
+  // console.log('evaluateConditions: ' + evaluateConditions(collisionsArray))
 
   // ! if no more than one of the conditions below is true, treat accordingly
   if (evaluateConditions(collisionsArray)) {
     
     if (topCollisionResult || bottomCollisionResult) {
-      removeCurrentClass()
+      removeCurrentClass(currentShape.currentRotation)
   
       currentShape.currentReferenceIndex = topDownCorrection(predictiveReferenceIndex,predictiveRotationIndex,predictiveRotation)
       currentShape.currentRotationIndex = predictiveRotationIndex
@@ -414,7 +411,7 @@ function rotationBoundaryCheck() {
         })
 
         if (winningCombination) {
-          removeCurrentClass()
+          removeCurrentClass(currentShape.currentRotation)
           currentShape.currentReferenceIndex = predictiveReferenceIndex
           currentShape.currentRotationIndex = predictiveRotationIndex
           currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
@@ -432,7 +429,7 @@ function rotationBoundaryCheck() {
       if (isCollisionDeadShape(predictiveRotation)) {
         return
       } else {
-        removeCurrentClass()
+        removeCurrentClass(currentShape.currentRotation)
         currentShape.currentReferenceIndex = predictiveReferenceIndex
         currentShape.currentRotationIndex = predictiveRotationIndex
         currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
@@ -442,7 +439,7 @@ function rotationBoundaryCheck() {
   } else if (evaluateMultipleCollisions(collisionsArray)) {
     return
   } else {
-    removeCurrentClass()
+    removeCurrentClass(currentShape.currentRotation)
     currentShape.currentRotationIndex = predictiveRotationIndex
     currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
     addCurrentClass(currentRotation)
@@ -460,10 +457,17 @@ function clearFullRows() {
       console.log(isFull)
       fullRows.push(rowArray)
       rowArray.forEach( div => div.removeAttribute('class') )
+
     }
   }
+
+  // ! if rows cleared, play sfx
+  if (fullRows.length > 0) {
+    elements.sfxLine.play()
+  }
+
   playerScoring.scoringCalculation(false,fullRows.length)
-  playerScoring.linesBeforeLevelIncrease(fullRows.length)
+  playerScoring.lineCountForLevelIncrease(fullRows.length)
   playerScoring.totalLines += fullRows.length
 
 }
@@ -491,44 +495,172 @@ function shiftRowsDown(emptyRows) {
   }
 }
 
+// function hardDropPrediction(referenceIndex,rotationIndex) {
+
+//   // if (currentShape !== undefined) return
+
+//   const gridVolume = height * width
+//   const bottomLine = cells.slice(gridVolume - width, gridVolume)
+
+//   console.log(bottomLine)
+
+//   const bottomLineIndexes = bottomLine.map(subCell => cells.findIndex(cell => cell === subCell))
+
+//   let newPredictiveReferenceIndex = bottomLineIndexes.filter( cellIndex => cellIndex % width === referenceIndex % width)[0]
+//   let newPredictiveRotation = currentShape.predictiveRotationCoordinates(newPredictiveReferenceIndex,rotationIndex)
+
+//   console.log(newPredictiveReferenceIndex)
+//   console.log(newPredictiveRotation)
+//   let isRunning = true
+  
+//   while (isRunning) {
+
+//     const isCollision = newPredictiveRotation.some( cellIndex => {
+//       if (cellIndex > 0 && cellIndex < gridVolume) {
+//         return cells[cellIndex].classList.contains('dead') &&
+//         cellIndex < gridVolume &&
+//         cellIndex > 0
+//       } else return
+//     })
+
+//     console.log(isCollision)
+
+//     if (isCollision) {
+//       newPredictiveReferenceIndex -= width
+//       newPredictiveRotation = currentShape.predictiveRotationCoordinates(newPredictiveReferenceIndex,rotationIndex)
+//       console.log(newPredictiveRotation)
+//     } else if (!isCollision) {
+//       isRunning = false
+//       console.log(newPredictiveReferenceIndex)
+//       return newPredictiveReferenceIndex
+//     }
+//   }
+// }
+
+function openModal(modal) {
+  if (modal === null) return
+  modal.classList.add('active')
+  elements.overlay.classList.add('active')
+}
+
+function closeModal(modal) {
+  if (modal === null) return
+  modal.classList.remove('active')
+  elements.overlay.classList.remove('active')
+}
+
+function resetVariables() {
+  // ! Button reset
+  elements.play.innerHTML = 'Play Tetris!'
+
+  // ! clear the interval
+  clearInterval(intervalID)
+
+  // ! reset intervalID to 0
+  intervalID = 0
+
+  // ! reset all let global variables
+  dropNewShape = true
+  intervalID = 0
+  currentShape = {}
+  currentRotation = []
+  isFirstLine = true
+  isFirstShape = true
+  isPaused = false
+  fullRows = []
+  pauseEventFunctions = true
+  isPaused = true
+  newGame = true
+
+  // ! reset all objects
+  playerScoring.scoreReset()
+  shapesArray.forEach( (object) => {
+    object.currentReferenceIndex = null
+    object.currentRotationIndex = 0
+  })
+}
+
 // ! DOM elements
 const elements = {
   play: document.querySelector('#play'),
-  grid: document.querySelector('#grid'),
-  pause: document.querySelector('#pause'),
+  toggleMusic: document.querySelector('#toggle-music'),
   restart: document.querySelector('#restart'),
+  scoreB: document.querySelector('#score-btn'),
+  scoreBClose: document.querySelector('#score-close-button'),
+  scoreBModal: document.querySelector('.score-modal'),
+  overlay: document.querySelector('#overlay'),
+  options: document.querySelector('#options-btn'),
+  optionsClose: document.querySelector('#options-close-button'),
+  optionsModal: document.querySelector('.options-modal'),
+  gameOver: document.querySelector('#gameover-btn'),
+  gameOverClose: document.querySelector('#gameover-close-button'),
+  gameOverModal: document.querySelector('.gameover-modal'),
+  activeModals: document.querySelectorAll('.active'),
+  grid: document.querySelector('#grid'),
+  nextShape: document.querySelector('#next-shape'),
+  // ! the 4 lines below correspond to the in-game current scores
   scoreboard: document.querySelector('#scoreboard'),
   level: document.querySelector('#level'),
   lines: document.querySelector('#lines'),
   score: document.querySelector('#score'),
   audioPlayer: document.querySelector('#audio'),
-  nextShape: document.querySelector('#next-shape'),
+  sfxLine: document.querySelector('#clear-line'),
+  sfxLevelUp: document.querySelector('#level-up'),
+  sfxLoose: document.querySelector('#loose'),
+  sfxGameStart: document.querySelector('#gamestart'),
+  sliderSFX: document.querySelector('#sfx-slider'),
+  sliderAudio: document.querySelector('#audio-slider'),
 }
+
+// ! sfx audio
+elements.sfxLine.src = 'sounds/clear-line.wav'
+elements.sfxLevelUp.src = 'sounds/level-up.wav'
+elements.sfxLoose.src = 'sounds/loose.wav'
+elements.sfxGameStart.src = 'sounds/gamestart.wav'
+
+elements.sfxGameStart.volume = 0.04
+elements.sfxLevelUp.volume = 0.2
+elements.sfxLoose.volume = 0.3
+
+// ! doesn't work if audio levels are changed, but ran out of time to fix
+elements.sliderSFX.addEventListener('change', (event) => {
+  elements.sfxLine.volume = (event.currentTarget.value / 100) / 10
+  elements.sfxLevelUp.volume = (event.currentTarget.value / 100) / 2
+  elements.sfxLoose.volume = event.currentTarget.value / 100
+  elements.sfxGameStart.volume = event.currentTarget.value / 100
+})
+
+elements.sliderAudio.addEventListener('change', (event) => {
+  elements.audioPlayer.volume = event.currentTarget.value / 100
+})
+
 
 // ! Grid Properties/elements
 const width = 10
 const height = 20
-// elements.grid.style.width = `${width * 30}px`
-// elements.grid.style.height = `${height * 30}px`
 const cells = []
 
-// ! Generate the grid
+// ! Generate the gameplay grid
 for (let index = 0; index < width * height; index++) {
+  
   const div = document.createElement('div')
+  const section = document.createElement('section')
+
   elements.grid.appendChild(div)
+  div.appendChild(section)
   // div.innerHTML = index
   cells.push(div)
 }
 
-// ! Grid Properties/elements
-// elements.nextShape.style.width = `${width * 30}px`
-// elements.nextShape.style.height = `${height * 30}px`
+
+// ! Generate the next shape display grid
 const nextShapeCells = []
 
-// ! Generate the grid
-for (let index = 0; index < 5 * 4; index++) {
+for (let index = 0; index < 2 * 4; index++) {
   const div = document.createElement('div')
+  const section = document.createElement('section')
   elements.nextShape.appendChild(div)
+  div.appendChild(section)
   // div.innerHTML = index
   nextShapeCells.push(div)
 }
@@ -538,7 +670,7 @@ const iShape = {
   startIndex: 5,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
-  nextShapeReferenceIndex: [8,9,10,11],
+  nextShapeReferenceIndex: [0,1,2,3],
   currentClass: 'i',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -562,7 +694,7 @@ const oShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
-  nextShapeReferenceIndex: [9,10,13,14],
+  nextShapeReferenceIndex: [1,2,5,6],
   currentClass: 'o',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -583,7 +715,7 @@ const tShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
-  nextShapeReferenceIndex: [6,9,10,11],
+  nextShapeReferenceIndex: [1,4,5,6],
   currentClass: 't',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -613,7 +745,7 @@ const jShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
-  nextShapeReferenceIndex: [8,9,10,14],
+  nextShapeReferenceIndex: [0,4,5,6],
   currentClass: 'j',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -643,7 +775,7 @@ const jReverseShape = {
   startIndex: 15,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
-  nextShapeReferenceIndex: [9,10,11,13],
+  nextShapeReferenceIndex: [2,4,5,6],
   currentClass: 'j-reverse',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -673,7 +805,7 @@ const sShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
-  nextShapeReferenceIndex: [9,10,12,13],
+  nextShapeReferenceIndex: [1,2,4,5],
   currentClass: 's',
   deadClass: 'dead',
   rightSide(referenceIndex) {
@@ -697,7 +829,7 @@ const sReverseShape = {
   startIndex: 14,
   currentReferenceIndex: null,
   currentRotationIndex: 0,
-  nextShapeReferenceIndex: [9,10,14,15],
+  nextShapeReferenceIndex: [0,1,5,6],
   currentClass: 's-reverse',
   deadClass: 'dead',
   leftSide(referenceIndex) {
@@ -770,12 +902,14 @@ const playerScoring = {
       return 20
     }
   },
-  linesBeforeLevelIncrease(lines) {
+  lineCountForLevelIncrease(lines) {
     if (lines) {
       this.linesToNextLevel += lines
     } else if (this.clearLineCount) {
+      this.currentLevel++
       this.linesToNextLevel = 0
       this.clearLineCount = false
+      elements.sfxLevelUp.play()
     }
     if (this.currentLevel < 10 && this.linesToNextLevel === (10 + (this.currentLevel * 10)) ) {
       this.level += 1
@@ -851,6 +985,20 @@ const playerScoring = {
 
 elements.play.addEventListener('click', () => {
 
+  if (newGame) {
+    elements.sfxGameStart.play()
+    newGame = false
+  }
+
+  if (!isPaused) {
+    elements.play.innerHTML = 'Resume Game'
+    isPaused = !isPaused
+  } else {
+    elements.play.innerHTML = 'Pause Game'
+    isPaused = !isPaused
+  }
+  pauseEventFunctions = !pauseEventFunctions
+
   // ! Prevent intervalIDs to loop on themsleves
   if (intervalID !== 0) {
     return
@@ -861,15 +1009,9 @@ elements.play.addEventListener('click', () => {
     cell.removeAttribute('class')
   })
 
-  if (audioLoop) {
-    tuneIndex = 0
-    elements.audioPlayer.src = audioTunes[tuneIndex]
-    elements.audioPlayer.play()
-    tuneIndex++
-    if (tuneIndex >= audioTunes.length) {
-      tuneIndex = 0
-    }
-  }
+  nextShapeCells.forEach( (cell) => {
+    cell.removeAttribute('class')
+  })
 
   intervalID = setInterval( () => {
 
@@ -880,7 +1022,7 @@ elements.play.addEventListener('click', () => {
 
       console.log('_________start_________')
 
-      // ! Scoreboard
+      // ! Scoreboard setup
       elements.level.innerHTML = playerScoring.currentLevel
       elements.lines.innerHTML = playerScoring.totalLines
       elements.score.innerHTML = playerScoring.currentScore
@@ -890,7 +1032,6 @@ elements.play.addEventListener('click', () => {
       fullRows = []
 
       isFirstLine = false
-
 
       if (dropNewShape) {
 
@@ -904,7 +1045,6 @@ elements.play.addEventListener('click', () => {
           })
 
           nextShape.nextShapeReferenceIndex.forEach( cellIndex => {
-            console.log(cellIndex)
             nextShapeCells[cellIndex].classList.add(nextShape.currentClass)
           })
 
@@ -922,19 +1062,20 @@ elements.play.addEventListener('click', () => {
           nextShape = generateNewShape(false)
 
           nextShape.nextShapeReferenceIndex.forEach( cellIndex => {
-            console.log(cellIndex)
             nextShapeCells[cellIndex].classList.add(nextShape.currentClass)
           })
         }
 
         // ! toggle on to disable functions in eventListeners
         // pauseEventFunctions = false
-        console.log('pauseEventFunctions: ' + pauseEventFunctions)
 
         const endGameCollision = isCollisionDeadShape(currentRotation)
 
         if (endGameCollision) {
-          alert('Game is over, you lost!')
+          // alert('Game is over, you lost!')
+          openModal(elements.gameOverModal)
+          elements.sfxLoose.play()
+          resetVariables()
           clearInterval(intervalID)
           return // test if return is needed
         }
@@ -942,30 +1083,61 @@ elements.play.addEventListener('click', () => {
         isFirstLine = true
         dropNewShape = false
         pauseEventFunctions = false
-        console.log('pauseEventFunctions: ' + pauseEventFunctions)
-
-        console.log('__dropping new shape__')
       }
 
       if (!isFirstLine){
         dropCheck(movements[0])
       }
-
-      clearFullRows()
-
     }
+
+    clearFullRows()
+
+    console.log('currentLevel: ' + playerScoring.currentLevel)
+    console.log('currentScore: ' + playerScoring.currentScore)
+    console.log('totalLines: ' + playerScoring.totalLines)
+    console.log('linesToNextLevel: ' + playerScoring.linesToNextLevel)
+    console.log('clearLineCount: ' + playerScoring.clearLineCount)
 
   },playerScoring.setIntervalTimingIncrease())
 })
 
+// ! turn music on, only on first button click after page load
+elements.play.addEventListener('click', () => {
+  tuneIndex = 0
+  elements.audioPlayer.src = audioTunes[tuneIndex]
+  elements.audioPlayer.play()
+  tuneIndex++
+  if (tuneIndex >= audioTunes.length) {
+    tuneIndex = 0
+  }
+
+  closeModal(elements.scoreBModal)
+
+  elements.toggleMusic.innerHTML = 'Switch Audio Off'
+}, { once: true })
+
+// ! play/pause audio toggle switch
+elements.toggleMusic.addEventListener('click', () => {
+  if (playAudio) {
+    elements.audioPlayer.play()
+    elements.toggleMusic.innerHTML = 'Switch Audio Off'
+  } else if (!playAudio) {
+    elements.audioPlayer.pause()
+    elements.toggleMusic.innerHTML = 'Switch Audio On'
+  }
+  playAudio = !playAudio
+})
+
+window.addEventListener('keydown', function(e) {
+  if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code) > -1) {
+    e.preventDefault()
+  }
+}, false)
+
 document.addEventListener('keydown', (event) => {
   // ! If (upArrow key is pressed) && (the end of the shape.rotation() array is reached) {go back to the start of this array}
   if (event.key === 'ArrowUp') {
-    console.log('____inside Rotation')
-    console.log('pauseEventFunctions: ' + pauseEventFunctions)
     if (!pauseEventFunctions) {
-      console.log('____activating Rotation')
-      console.log('pauseEventFunctions: ' + pauseEventFunctions)
       rotationBoundaryCheck()
     }
   }
@@ -988,21 +1160,52 @@ document.addEventListener('keydown', (event) => {
 
   // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
   if (event.key === 'ArrowRight') {
+    console.log('arrowright')
     if (!pauseEventFunctions) {
       dropCheck(movements[2])
     }
   }
+
+  // if (event.key === ' ') {
+  //   console.log('__inside space')
+  //   if (!pauseEventFunctions) {
+  //     console.log('__inside space')
+  //     hardDrop = true
+  //     removeCurrentClass(currentShape.currentRotation)
+  //     currentShape.currentReferenceIndex = hardDropPrediction(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
+  //     currentShape.currentRotation = currentShape.predictiveRotationCoordinates(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
+  //     console.log(currentShape.currentReferenceIndex)
+  //     console.log(currentShape.currentRotation)
+  //     currentShape.currentRotation.forEach( cellIndex => cells[cellIndex].classList.add('dead') )
+  //     dropNewShape = true
+  //   }
+  // }
+
+  // if (event.key === 'Shift') {
+  //   console.log('__inside shiftleft')
+  //   if (!pauseEventFunctions && !hardDrop) {
+  //     console.log('__inside shiftleft')
+  //     hdPredictiveReferenceIndex = hardDropPrediction(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
+  //     hdPredictiveRotation = currentShape.predictiveRotationCoordinates(hdPredictiveReferenceIndex,currentShape.currentRotationIndex)
+  //     console.log('predictiveRotation: ' + hdPredictiveRotation)
+  //     return hdPredictiveRotation.forEach( (cellIndex) => {
+  //       console.log('addingClass')
+  //       cells[cellIndex].classList.add(hdPredictionClass)
+  //     })
+  //   }
+  // }
 })
 
-elements.pause.addEventListener('click', () => {
-  isPaused = !isPaused
-  if (isPaused) {
-    elements.pause.innerHTML = 'Resume Game'
-  } else {
-    elements.pause.innerHTML = 'Pause Game'
-  }
-  pauseEventFunctions = !pauseEventFunctions
-})
+// document.addEventListener('keyup', (event) => {
+//   if (event.key === 'Shift') {
+//     if (!pauseEventFunctions) {
+//       console.log('__removing class')      
+//       return cells.forEach( (cell) => {
+//         cell.classList.remove(hdPredictionClass)
+//       })
+//     }
+//   }
+// })
 
 elements.restart.addEventListener('click', () => {
   // ! start off with no class/shapes
@@ -1010,28 +1213,35 @@ elements.restart.addEventListener('click', () => {
     cell.removeAttribute('class')
   })
 
-  // ! clear the interval
-  clearInterval(intervalID)
-
-  // ! reset intervalID to 0
-  intervalID = 0
-
-  // ! reset all let global variables
-  dropNewShape = true
-  intervalID = 0
-  currentShape = {}
-  currentRotation = []
-  isFirstLine = true
-  isFirstShape = true
-  isPaused = false
-  fullRows = []
-  pauseEventFunctions = true
-
-  // ! reset all objects
-  playerScoring.scoreReset()
-  shapesArray.forEach( (object) => {
-    object.currentReferenceIndex = null
-    object.currentRotationIndex = 0
+  nextShapeCells.forEach( (cell) => {
+    cell.removeAttribute('class')
   })
 
+  resetVariables()
 })
+
+// ! options modal event listeners
+elements.options.addEventListener('click', () => {
+  openModal(elements.optionsModal)
+  isPaused = true
+})
+
+elements.optionsClose.addEventListener('click', () => {
+  closeModal(elements.optionsModal)
+  isPaused = false
+})
+
+// ! game over modal
+elements.gameOverClose.addEventListener('click', () => {
+  closeModal(elements.gameOverModal)
+})
+
+// ! modal overlay event listener (to close modal)
+elements.overlay.addEventListener('click', () => {
+  const activeModals = document.querySelectorAll('.active')
+  console.log(activeModals)
+  activeModals.forEach( activeModal => closeModal(activeModal))
+  isPaused = false
+})
+
+

@@ -12,24 +12,80 @@
   </header>
 
   <main>
+
+    <div class='options-modal'>
+      <div id="options-header">
+        <div id="options-title">Options</div>
+        <button id="options-close-button">&times;</span>
+      </div>
+      <table id="options-key">
+        <tr>
+          <th>Up Arrow: </th>
+          <th>Rotate</th>
+        </tr>
+        <tr>
+          <th>Left Arrow: </th>
+          <th>Move Sideways</th>
+        </tr>
+        <tr>
+          <th>Right Arrow: </th>
+          <th>Move Right</th>
+        </tr>
+        <tr>
+          <th>Down Arrow: </th>
+          <th>Soft Drop</th>
+        </tr>
+      </table>
+
+      <div class="options-body-div">
+        <p class="options-body" id="sfx-v">SFX Volume</p>
+        <div class="sfx-volume">
+          <input type="range" min="1" max="100" value="50" class="slider" id="sfx-slider">
+        </div>
+        <p class="options-body" id="audio-v">Music Volume</p>
+        <div class="audio-volume">
+          <input type="range" min="1" max="100" value="50" class="slider" id="audio-slider">
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class='score-modal'>
+      <div id="score-header">
+        <div id="score-title">Scoreboard</div>
+        <button id="score-close-button">&times;</button>
+        <ol>
+          <li></li>
+        </ol>
+        <button class="left-page-buttons" id="play">Play Tetris!</button>
+      </div>
+    </div> -->
+
+    <div class='gameover-modal'>
+      <div id="gameover-header">
+        <div id="gameover-title">**<br><br>Game Over, you loose!<br><br>**</div>
+        <button id="gameover-close-button">&times;</button>
+      </div>
+    </div>
+
     <div id="left-page">
       <div id="buttons">
-        <button id="play">Play Tetris!</button>
-        <button id="pause">Pause Game</button>
-        <button id="restart">Restart</button>
-        <button id="toggle-music">Toggle Music On</button>
+        <button class="left-page-buttons" id="play">Play Tetris!</button>
+        <button class="left-page-buttons" id="restart">Restart</button>
+        <button class="left-page-buttons" id="toggle-music">- - -</button>
+        <button class="left-page-buttons modal-buttons" id="options-btn">Options</button>
+        <button class="left-page-buttons modal-buttons" id="score-btn">Score-<br>board</button>
       </div>
-      <!-- <div id='instructions'>
-        <h6>Instructions</h6>
-        <p><span>Up</span>: Rotation</p>
-        <p><span>Left/Right</span>: Move Sideways</p>
-        <p><span>Down</span>: Shift Down</p>
-        <p><span>Spacebar</span>: Skip Down (not working yet)</p>
-      </div> -->
     </div>
+
+    <div id="overlay"></div>
+
+    <!-- <div id='options-modal'></div> -->
     <div id="grid"></div>
+
     <div id="right-page">
+
       <div id="next-shape"></div>
+
       <div id="scoreboard">
         <section class="level">
           <p class="level">Level</p>
@@ -44,10 +100,17 @@
           <p id="score">0</p>
         </section>
       </div>
+
     </div>
+
   </main>
   
 
   <audio id="audio" src="#"></audio>
+  <audio id="gamestart" src="#"></audio>
+  <audio id="clear-line" src="#"></audio>
+  <audio id="level-up" src="#"></audio>
+  <audio id="loose" src="#"></audio>
+
 </body>
 </html>
