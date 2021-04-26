@@ -145,6 +145,7 @@ h1 {
   height: calc(100% / 20);
   width: calc(100% / 10);
   border-radius: 1px;
+  font-family: Arial;
 }
 
 #right-page {

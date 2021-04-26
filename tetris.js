@@ -291,6 +291,10 @@ function evaluateMultipleCollisions(array) {
 
 function rotationBoundaryCheck() {
 
+  console.log('__current rotation: ' + currentRotation)
+  console.log('__current reference index: ' + currentShape.currentReferenceIndex)
+  console.log('__current rotation index: ' + currentShape.currentRotationIndex)
+
   // ! defining the next rotation variables to make collision checks
   let predictiveRotationIndex
 
@@ -343,6 +347,8 @@ function rotationBoundaryCheck() {
         if (cells[deadCellIndex].classList.contains('dead')) {
 
           predictiveReferenceIndex = currentShape.currentReferenceIndex
+          console.log('predictiveReferenceIndex: ' + predictiveReferenceIndex)
+          console.log('currentRotationIndex: ' + currentShape.currentRotationIndex)
 
           // ! shift down width steps (collision above)
           if (deadCellIndex < (currentShape.currentReferenceIndex - (currentShape.currentReferenceIndex % width)) ) {
@@ -366,37 +372,53 @@ function rotationBoundaryCheck() {
         }
       })
 
-      const allCombinations = []
+      // const allCombinations = []
 
-      resultsArray.map( (initialCombination) => {
-        allCombinations.push(initialCombination)
-      })
+      console.log('resultsArray: ' + resultsArray)
+
+      const allCombinations = resultsArray.map( initialCombination => initialCombination)
 
       // ! if more than 1 result, try combinations for the best outcome
       if (resultsArray.length > 1) {
         for (let i = 0; i < resultsArray.length - 1; i++) {
-          allCombinations.push(resultsArray[i]*2)
+          allCombinations.push(resultsArray[i] * 2)
           for (let j = i + 1; j < resultsArray.length; j++) {
             allCombinations.push(resultsArray[i] + resultsArray[j])
             allCombinations.push(resultsArray[j] * 2)
           }
         }
+      } else if (resultsArray.length === 1) {
+        allCombinations.push(resultsArray[0] * 2)
       }
 
+      console.log('allCombinations: ' + allCombinations)
+
+      const uniqueCombination = allCombinations.filter((value, index, array) => array.indexOf(value) === index)
+      
+      console.log('uniqueCombination: ' + uniqueCombination)
+      
+
       // ! checking combinations
-      allCombinations.forEach( (result) => {
-        predictiveReferenceIndex += result
-        predictiveRotation = currentShape.predictiveRotationCoordinates(predictiveReferenceIndex,predictiveRotationIndex)
+      uniqueCombination.map( (result) => {
         
+        let testPredictiveReferenceIndex = predictiveReferenceIndex
+
+        testPredictiveReferenceIndex += result
+        predictiveRotation = currentShape.predictiveRotationCoordinates(testPredictiveReferenceIndex,predictiveRotationIndex)
+        
+        // ! checking for collisions with all blocks of tested rotation
         const winningCombination = predictiveRotation.every( (cellIndex,iterationIndex) => {
 
           const currentRemainder = currentRotation[iterationIndex] % width
           const predictiveRemainder = predictiveRotation[iterationIndex] % width 
 
+          console.log('currentRemainder', currentRemainder)
+          console.log('predictiveRemainder', predictiveRemainder)
+          
           let leftSideCollision = false
           let rightSideCollision = false
 
-          if ( (currentRemainder < 2) && !(predictiveRemainder > 7) ) {
+          if ( (currentRemainder < 2) && (predictiveRemainder > 7) ) {
             leftSideCollision = true
           }
 
@@ -404,21 +426,47 @@ function rotationBoundaryCheck() {
             rightSideCollision = true
           }
 
-          return (cellIndex > 0) && // ! out of range check
-          (cellIndex < width * height) && // ! out of range check
+          console.log('leftSideCollision', leftSideCollision)
+          console.log('rightSideCollision', rightSideCollision)
+
+          console.log((cellIndex > 0) &&
+          (cellIndex < width * height) &&
+          !cells[cellIndex].classList.contains('dead') &&
+          !leftSideCollision && !rightSideCollision)
+
+          console.log('cellIndex > 0', cellIndex > 0)
+          console.log('cellIndex < width * height', cellIndex < width * height)
+          console.log('!cells[cellIndex].classList.contains(dead)',!cells[cellIndex].classList.contains('dead'))
+          console.log('!leftSideCollision && !rightSideCollision', !leftSideCollision && !rightSideCollision)
+
+          console.log('cellIndex', cellIndex)
+          console.log('cells[cellIndex]', cells[cellIndex])
+
+          return (cellIndex > 0) && // ! out of range check (top)
+          (cellIndex < width * height) && // ! out of range check (down)
           !cells[cellIndex].classList.contains('dead') && // ! does not contain dead class check
           !leftSideCollision && !rightSideCollision // ! no sideway collisions
         })
 
+        console.log('winningCombination', winningCombination)
+        console.log('testPredictiveReferenceIndex', testPredictiveReferenceIndex)
+
+        // ! set back at initial value to test other results
+        predictiveReferenceIndex -= result
+
         if (winningCombination) {
+          console.log('winningCombination: ' + winningCombination)
           removeCurrentClass(currentShape.currentRotation)
-          currentShape.currentReferenceIndex = predictiveReferenceIndex
+          currentShape.currentReferenceIndex = testPredictiveReferenceIndex
           currentShape.currentRotationIndex = predictiveRotationIndex
           currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
+          console.log('__new rotation: ' + currentRotation)
           addCurrentClass(currentRotation)
+          return
         } else {
           return
         }
+
       })
 
     } else if (sidesCollisionResult) {
