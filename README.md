@@ -218,3 +218,12 @@ On the final version of the game, I found that a lot of `let` variables led to s
 
 
 The CSS flicker animation on the page header is very demanding on the CPU and generates a lot of heat. Perhaps I could be exploiting the less demanding properties such as translate().
+
+## Artwork and Credits
+- Audio: [Blue Hawaii - No One Like You](https://www.youtube.com/watch?v=IDJT_SDrQl4)
+- Audio SFX:
+  - [Sound 1](https://freesound.org/people/Breviceps/sounds/450613/)
+  - [Sound 2](https://freesound.org/people/TolerableDruid6/sounds/458416/)
+  - [Sound 3](https://freesound.org/people/cabled_mess/sounds/350905/)
+  - [Sound 4](https://freesound.org/people/shapingwaves/sounds/362375/)
+- Background Image: [123rf.com](https://www.123rf.com/photo_102980186_stock-vector-astronaut-walking-dog-in-a-space-suit-pop-art-retro-vector-illustration-kitsch-vintage-drawing.html)
