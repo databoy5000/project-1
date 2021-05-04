@@ -291,10 +291,6 @@ function evaluateMultipleCollisions(array) {
 
 function rotationBoundaryCheck() {
 
-  console.log('__current rotation: ' + currentRotation)
-  console.log('__current reference index: ' + currentShape.currentReferenceIndex)
-  console.log('__current rotation index: ' + currentShape.currentRotationIndex)
-
   // ! defining the next rotation variables to make collision checks
   let predictiveRotationIndex
 
@@ -309,20 +305,14 @@ function rotationBoundaryCheck() {
 
   // ! separate variables for different collision detections, which will be treated differently
   const topCollisionResult = isTopCollision(predictiveRotation)
-  // console.log('topCollisionResult: ' + topCollisionResult)
 
   const bottomCollisionResult = isBottomCollision(predictiveRotation)
-  // console.log('bottomCollisionResult: ' + bottomCollisionResult)
 
   const collisionDeadShapeResult = isCollisionDeadShape(predictiveRotation)
-  // console.log('collisionDeadShapeResult: ' + collisionDeadShapeResult)
 
   const sidesCollisionResult = isSidesCollision(currentRotation,predictiveRotation)
-  // console.log('sidesCollisionResult: ' + sidesCollisionResult)
 
   const collisionsArray = [topCollisionResult,bottomCollisionResult,collisionDeadShapeResult,sidesCollisionResult]
-
-  // console.log('evaluateConditions: ' + evaluateConditions(collisionsArray))
 
   // ! if no more than one of the conditions below is true, treat accordingly
   if (evaluateConditions(collisionsArray)) {
@@ -347,8 +337,6 @@ function rotationBoundaryCheck() {
         if (cells[deadCellIndex].classList.contains('dead')) {
 
           predictiveReferenceIndex = currentShape.currentReferenceIndex
-          console.log('predictiveReferenceIndex: ' + predictiveReferenceIndex)
-          console.log('currentRotationIndex: ' + currentShape.currentRotationIndex)
 
           // ! shift down width steps (collision above)
           if (deadCellIndex < (currentShape.currentReferenceIndex - (currentShape.currentReferenceIndex % width)) ) {
@@ -372,10 +360,6 @@ function rotationBoundaryCheck() {
         }
       })
 
-      // const allCombinations = []
-
-      console.log('resultsArray: ' + resultsArray)
-
       const allCombinations = resultsArray.map( initialCombination => initialCombination)
 
       // ! if more than 1 result, try combinations for the best outcome
@@ -391,11 +375,7 @@ function rotationBoundaryCheck() {
         allCombinations.push(resultsArray[0] * 2)
       }
 
-      console.log('allCombinations: ' + allCombinations)
-
       const uniqueCombination = allCombinations.filter((value, index, array) => array.indexOf(value) === index)
-      
-      console.log('uniqueCombination: ' + uniqueCombination)
       
 
       // ! checking combinations
@@ -411,9 +391,6 @@ function rotationBoundaryCheck() {
 
           const currentRemainder = currentRotation[iterationIndex] % width
           const predictiveRemainder = predictiveRotation[iterationIndex] % width 
-
-          console.log('currentRemainder', currentRemainder)
-          console.log('predictiveRemainder', predictiveRemainder)
           
           let leftSideCollision = false
           let rightSideCollision = false
@@ -426,41 +403,20 @@ function rotationBoundaryCheck() {
             rightSideCollision = true
           }
 
-          console.log('leftSideCollision', leftSideCollision)
-          console.log('rightSideCollision', rightSideCollision)
-
-          console.log((cellIndex > 0) &&
-          (cellIndex < width * height) &&
-          !cells[cellIndex].classList.contains('dead') &&
-          !leftSideCollision && !rightSideCollision)
-
-          console.log('cellIndex > 0', cellIndex > 0)
-          console.log('cellIndex < width * height', cellIndex < width * height)
-          console.log('!cells[cellIndex].classList.contains(dead)',!cells[cellIndex].classList.contains('dead'))
-          console.log('!leftSideCollision && !rightSideCollision', !leftSideCollision && !rightSideCollision)
-
-          console.log('cellIndex', cellIndex)
-          console.log('cells[cellIndex]', cells[cellIndex])
-
           return (cellIndex > 0) && // ! out of range check (top)
           (cellIndex < width * height) && // ! out of range check (down)
           !cells[cellIndex].classList.contains('dead') && // ! does not contain dead class check
           !leftSideCollision && !rightSideCollision // ! no sideway collisions
         })
 
-        console.log('winningCombination', winningCombination)
-        console.log('testPredictiveReferenceIndex', testPredictiveReferenceIndex)
-
         // ! set back at initial value to test other results
         predictiveReferenceIndex -= result
 
         if (winningCombination) {
-          console.log('winningCombination: ' + winningCombination)
           removeCurrentClass(currentShape.currentRotation)
           currentShape.currentReferenceIndex = testPredictiveReferenceIndex
           currentShape.currentRotationIndex = predictiveRotationIndex
           currentRotation = currentShape.rotationsArray(currentShape.currentRotationIndex)
-          console.log('__new rotation: ' + currentRotation)
           addCurrentClass(currentRotation)
           return
         } else {
@@ -502,7 +458,6 @@ function clearFullRows() {
     const isFull = rowArray.every( (cell) => cell.classList.contains('dead') )
 
     if (isFull) {
-      console.log(isFull)
       fullRows.push(rowArray)
       rowArray.forEach( div => div.removeAttribute('class') )
 
@@ -1068,8 +1023,6 @@ elements.play.addEventListener('click', () => {
     
     if (!isPaused) {
 
-      console.log('_________start_________')
-
       // ! Scoreboard setup
       elements.level.innerHTML = playerScoring.currentLevel
       elements.lines.innerHTML = playerScoring.totalLines
@@ -1140,12 +1093,6 @@ elements.play.addEventListener('click', () => {
 
     clearFullRows()
 
-    console.log('currentLevel: ' + playerScoring.currentLevel)
-    console.log('currentScore: ' + playerScoring.currentScore)
-    console.log('totalLines: ' + playerScoring.totalLines)
-    console.log('linesToNextLevel: ' + playerScoring.linesToNextLevel)
-    console.log('clearLineCount: ' + playerScoring.clearLineCount)
-
   },playerScoring.setIntervalTimingIncrease())
 })
 
@@ -1208,7 +1155,6 @@ document.addEventListener('keydown', (event) => {
 
   // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
   if (event.key === 'ArrowRight') {
-    console.log('arrowright')
     if (!pauseEventFunctions) {
       dropCheck(movements[2])
     }
@@ -1287,7 +1233,6 @@ elements.gameOverClose.addEventListener('click', () => {
 // ! modal overlay event listener (to close modal)
 elements.overlay.addEventListener('click', () => {
   const activeModals = document.querySelectorAll('.active')
-  console.log(activeModals)
   activeModals.forEach( activeModal => closeModal(activeModal))
   isPaused = false
 })

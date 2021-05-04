@@ -1,31 +1,33 @@
 ### ![GA](https://cloud.githubusercontent.com/assets/40461/8183776/469f976e-1432-11e5-8199-6ac91363302b.png) General Assembly, Software Engineering Immersive
-# Vac-Man 
- 
+
+# Le Space Tetraminos 
+
 
 ## Overview
 This project is my first fully developped excercise at General Assembly's Software Immersive course.
 
-The assignment was to create a grid-based game that could utilise array based logic, moving parts and variable diffuculty settings to be rendered in the browser, using HTML, CSS and JavaScript. The project deadline was to be completed individually, within one week.
+The assignment was to create a grid-based game that could utilise array based logic, moving parts and variable difficulty settings to be rendered in the browser, using HTML, CSS and JavaScript. The project deadline was to be completed individually, within one week.
 
-From the list of games provided, I picked to re-create the tetris game to challenge my knowledge of recursive logic, functions and objects. The jargon utilised for javascript and this documentation is:
-    - Shapes: refers to the tetraminos.
-    - Rotation: refers to a tetramino rotation (in js: an array of usually 4 indexes).
-    - Reference Index: each tetramino have a reference index to which all other block refer their position to.
-    - Rotation Index: each shape display their blocks in different rotations, for which cell indexes are stored in an array. These different rotations are all stored into one array (of arrays). So a rotation index refers to a particular rotation within its array.
-    - Cell Index: refers to the index of a partiocular cell within the game grid.
-    - Dead Shape: refers to a shape that has fallen.
+From the list of games provided, I picked to re-create the tetris game to challenge my knowledge of recursive logic, functions and objects. The jargon utilised for javascript and this documentation is as follows:
+- **Shapes**: refers to the tetraminos.
+- **Rotation**: refers to a tetramino rotation (in js: an array of usually 4 cell indexes).
+- **Reference Index**: each tetramino have a reference cell index (depending on its position within the game grid) to which all other block refer their position from.
+- **Rotation Index**: each shape display their blocks in different rotations, for which cell indexes are stored in an array. These different rotations are all stored into one array (of arrays). So a rotation index refers to a particular rotation within its array.
+- **Cell Index**: refers to the index of a partiocular cell within the game grid.
+- **Dead Shape**: refers to a shape that has fallen.
 
+You can launch the game on GitHub pages [here](https://databoy5000.github.io/project-1/), and access the GitHub repo [here](https://github.com/databoy5000/project-1).
 
-You can launch the game on GitHub pages [here](https://databoy5000.github.io/project-1/), or find the GitHub repo [here](https://github.com/databoy5000/project-1).
 
 ## Brief
-- **Render a game in the browser**
-- **Design a logic for player scoring, levels and game end**
-- **Include separate HTML / CSS / JavaScript files**
-- Stick with **KISS (Keep It Simple Stupid)** and **DRY (Don't Repeat Yourself)** principles
-- Use **Javascript** for **DOM manipulation**
-- **Deploy your game online**
-- Use **semantic markup** for HTML and CSS
+
+- Render a game in the browser.
+- Design a logic for the gameplay, player scoring, levels and game end.
+- Include separate HTML / CSS / JavaScript files.
+- Stick with KISS (Keep It Simple Stupid) and DRY (Don't Repeat Yourself) principles.
+- Use Javascript for DOM manipulation and game logic.
+- Deploy the game online.
+- Use semantic markup for HTML and CSS.
 
 
 ## Technologies used
@@ -36,38 +38,38 @@ You can launch the game on GitHub pages [here](https://databoy5000.github.io/pro
 - Git and GitHub
 - Google Fonts
 
+
 ## Approach
 
-1. Defining the project scope to deliver an MVP
-    - Deciding on the main data types to use for shapes, DOM manipulation and game logic
-    - Grid game display within defined dimensions of the classic Tetris game
-    - Collison detection with game boundaries and other fallen shapes
-    - Shape (tetraminos) display on the grid
-    - Shape gravity dropping the shape in intervals
-    - Very basic CSS to display cells to play (and test) the game
-2. Defining additional features to keep a logic (during MVP developement) which would accomodate the further add-ons.
-    - Player scoring
-    - Mutable buttons
-    - Next shape display
-    - Modal for options/instructions and game over
-    - In game audio and sfx playback
+1. <ins>MVP/project scope</ins>
+    - Defining the main data types to use for shapes, DOM manipulation and the game logic.
+    - Grid game display within the dimensions of the classic Tetris game.
+    - Collison detection with the game boundaries and fallen shapes.
+    - Shape (tetraminos) display on the game grid.
+    - Shape gravity: dropping the shape in intervals.
+    - Basic CSS to display cells allowing to play (and test) the game.
+2. <ins>Additional features</ins>
+    - Collision correction.
+    - Player scoring.
+    - Mutable buttons.
+    - Next shape display.
+    - Modal for options/instructions and game over.
+    - In game audio and sfx playback.
+    - Hard drop predictions and prediction display on key hold.
+
 
 ### Board layout 
 Using the DOM to manipulate HTML, I've created a 10 (width) x 20 (height) of proportional div (cells) which are stored in an array, using a for loop to dynamically create all 200 cells.
 
+<img src="./screenshots/game_grid.png" alt="Basic Grid Display" width="200"/>
+
 ### Data types
-1. Shapes
-I've chosen objects to store shape properties and functions to manipulate their properties. I could've made the functions global and use let variables to store data, but I prefered having them within the object rather than in let variables for efficiency. I feel like it would've created a thick web of variable to untangle in debugging, too many parameters/arguments to enter in functions, and slow down the process of writting code. All shape objects to be stored in an array, from which a random index will be generated to pick a next shape.
+1. <ins>Shapes</ins>
 
-2. DOM Elements
-I found it easier to read and to refer to, when having all query selectors within one object.
+For a single shape, each of its properties are stored within an object with functions to manipulate the properties. All shape objects are stored in an array, from which a random index is generated to pick the next shape/object.
 
-3. Variable: const and let
-Storing data in various ways to manipulate the general game mechanics, and toggle functions on and off.
-
-### Shape Object
-The initial state of a game object looks like the following:
-```
+The initial state of a shape looks like the following:
+```js
 const jReverseShape = {
   startIndex: 15,
   currentReferenceIndex: null,
@@ -99,72 +101,120 @@ const jReverseShape = {
 }
 ```
 
-### Game timing
-Set interval
+2. <ins>DOM Elements</ins>
 
-### Shape movement && gravity
-General pattern:
-Remove class of shape block
-Update the current shape reference index
-Add class shape to new position
+All DOM elements were stored into one object to keep things organised into one place.
+
+3. <ins>Variables: `const` and `let`<ins>
+
+The majority of variables are declared at the top end of the script to set their scope as global and allow these to interact with multiple functions and the game logic. `let` were used for mutating numbers, booleans and arrays which were useful to direct the game logic (e.g. to isolate certain game logic compartments when a new shape enters the game, to pause the game, to bypass event listeners when the game is paused).
+
+
+### Game start, generating the current shape & the next shape
+After the game starts, all classes within the grid are removed and two shapes are generated with the `function generateNewShape(isCurrentShape)`:
+1. the `currentShape` where `isCurrentShape === true`,
+2. and the `nextShape(false)` where `isCurrentShape === false`.
+
+`isCurrentShape` boolean allows the function to output for both different outcomes (current and next shape) and to pass the shape objects into variables.
+
+
+### Game timing
+The game timed loop is managed with the `setInterval()` method where most of the game logic is stored.
+
+The elements nested within `setInterval()` such as variables and functions have the following roles:
+- Generating new and next shapes
+- Displaying/moving the shape
+- Clearing full rows
+- Level increase, line and score count
+- Audio SFX playback at specific cues
+
+### Event listeners (click, keydown and change)
+They allow the player to interact with the game's following elements:
+- Buttons:
+  - Start/restart/pause the game
+  - Open/close modals
+- Arrow Keys: 
+  - Move/rotate shapes
+  - `e.preventDefault()` to prevent the window from scrolling whilst playing.
+
+
+### Shape gravity
+At each timed intervals, the following pattern is used to display a shape movement:
+- Remove class of shape blocks (using the `forEach()` method)
+- Update the current shape reference index and other blocks, by increasing their position by width (+10)
+- Add shape class to the new position
 
 ### Collision detection 
-This was the most challenging part. The logic that I followed is that I wanted a shape to be able to rotate wether it was colliding with an edge of the game boundaries (top, bottom, left, right) or with a dead shape, if there was space to fully rotate in it's new position.
+I wanted was for shapes to be able to rotate and correct its position if it was colliding with an edge of the game boundaries (top, bottom, left, right) or with a dead shape, if ever there was space to fully rotate in it's new position. For this I needed to:
+1. Output a prediction of the shape's next rotation
+2. Evaluate if collisions are true. For collisions with game boundaries, the corrections are predictable so the calculations are fixed/straighforward.
+3. The collisions with dead shapes are unpredictable, because the game grid keeps mutating. So if a collision comes true, correct the shape's predictive position up to 2 cells left/right/top/down in a range of all possible combinations, as all shape's cells to not extend further than 2 blocks away from the reference cell.
+    - Detect the cell in collision, find its positiopn relative to the shape's reference cell (`referenceIndex`) and output its correction in an array collecting all possible corrections.
+    - Add all corrections to each other in all possible combinations and push them into a new array.
+    - Apply these combinations one by one to the predictive `referenceIndex` and check all shape cells for collisions.
+    - If there are no collisions turn the predictive shape into the current shape. Else, do nothing.
 
-I broke it down into the follwing steps:
-  - Detect and treat collision types only if one of these collision turn true. If more than one collision are true, do not rotate the shape.
-  - Defining collisions types and possible outcomes:
-    - with top or bottom edge, if true:
-      - correct shape predictive position up to 2 steps down (+width) or up (-width). If no collisions after 2 corrections make the predictive blocks positions the current shape coordinates.
-    - with side edges, if true:
-      - correct shape predictive position up to 2 steps left/right. If no collisions after 2 corrections make the predictive blocks positions the current shape coordinates.
-    - with dead shapes, if true:
-      - define the predictive shape's blocks positions and evluate if each of these corrections need to occure: shift down, up, right, left.
-      - Then throw all of these corrections needing to occure, in an array ```const allCombinations```.
-      - If more than one correction needs occuring, add to ```allCombinations```, all combinations needing to occure 
+```js
+// resultsArray length should be inferior or equal to 2 and should include either of the following corrections: 1, -1, 10, -10
+// example: const resultsArray = [-1,10]
 
+const allCombinations = resultsArray.map( initialCombination => initialCombination)
 
-  - Define boundary collision detection individually. Separately, I treated collisions like so:
-    - Top and bottom boundary collision detection: out of range cell index.
-    - Sideway boundary collision detection: made with predictive rotation, then comparing remainders of a current vs. predictive shape position.
-  - Define dead shape collision detection individually
-    -When the current shape's rotation prediction enters in collision with a dead shape above/below, correct the shape one step down or one step up.
-    -When the current shape's rotation prediction enters in collision with a dead shape left/right, correct the shape one step left/right.
+if (resultsArray.length > 1) {
+  for (let i = 0; i < resultsArray.length - 1; i++) {
+    allCombinations.push(resultsArray[i] * 2) // expected output: -2
+    for (let j = i + 1; j < resultsArray.length; j++) {
+      allCombinations.push(resultsArray[i] + resultsArray[j]) // expected output: 9, 20
+      allCombinations.push(resultsArray[j] * 2)
+    }
+  }
+} else if (resultsArray.length === 1) {
+  allCombinations.push(resultsArray[0] * 2)
+}
 
-Then, I started merging
-
-
-
-
-
-
-
-### Variables 
+// expected final output: allCombinations = [-2,-1,9,10,20]
+```
 
 
-### Non-game screens
+### Scoring
+All scoring elements are consolidated into one object, as they all depend on each other as the game goes. The scoring functions were implemented based on the past Nintendo tetris scoring system.
+
+Actions which interact with scoring:
+- soft dropping a shape (arrow down) increases the score
+- clearing lines increases lines count and levels
+- levels increase the `setInterval()` interval timing.
 
 
+### Modal
+Creating a modal was handy to display instructions and options (audio levels) for the user's experience.
 
 
 ## Screenshots
 
+### In-game screen
+![Image 1](/screenshots/spacetetris_ingame.png)
+
+### Game lost screen
+![Image 2](/screenshots/spacetetris_gamelost.png)
 
 
-## Bugs ![Frightened cat](/images/cat-frightened.png)
-
-
-
-## Potential future features
-
-
+## Possible Improvements
+- Hard drop and display of shape drop location on shift key hold.
+- Hold shape.
+- Shape rotation limitation on collisions: ideally to have the shape to rotate no more than 'n' times when in collision with dead shapes and/or bottom boundary and corrected (else the player can rotate infinitely without fully dropping and killing the shape if they rotate fast enough).
+- Localstorage scoreboard for players to compete with each other and/or remember their best scores.
+- Adding a full audio playlist.
+- Better volume mixing of the SFX audio .
 
 
 ## Lessons learned
-- In hinsight, I could've used
-- post top/bottom ocrrection, check for collision with dead shape (but outcome so rare). essentially, I couldn've looped in a while loop all conditions evaluation up to 2 times. but not sure of the bugs it could introduce. Could've used elements from dead collision corrections
+I can see how naming your code correctly is very important for a larger scale project. I've had to refactor a few functions and variables when I re-read my code and felt confused. There's room for improvement in coding preparation.
 
 
-## Artwork and credit
+Sudo coding: I went into too much detail (in actual JS syntax) which slowed me down when writing and translating it into code to test. Using the JS syntax logic but in plain english will defintely help to better paint the bigger picture including all of its building blocks.
 
 
+On the final version of the game, I found that a lot of `let` variables led to slower reading when troubleshooting and/or adding features. Also, I could've made use of the `removeEventListener()` method to reduce the number of `let` variables. I'm curious to see how much more efficient it would've been to use React.
+
+
+The CSS flicker animation on the page header is very demanding on the CPU and generates a lot of heat. Perhaps I could be exploiting the less demanding properties such as translate().
