@@ -16,7 +16,7 @@ From the list of games provided, I picked to re-create the tetris game to challe
 - **Cell Index**: refers to the index of a partiocular cell within the game grid.
 - **Dead Shape**: refers to a shape that has fallen.
 
-You can launch the game on GitHub pages [here](https://databoy5000.github.io/project-1/), and access the GitHub repo [here](https://github.com/databoy5000/project-1).
+You can launch the game on GitHub pages [here](), and access the GitHub repo [here](https://github.com/databoy5000/project-1).
 
 
 ## Brief
@@ -29,18 +29,17 @@ You can launch the game on GitHub pages [here](https://databoy5000.github.io/pro
 - Deploy the game online.
 - Use semantic markup for HTML and CSS.
 
+## Live Demo, Useful Links
 
-## Technologies used
-
-- HTML
-- CSS
-- JavaScript
-- Git and GitHub
-- Google Fonts
+[<img alt="Live Demo" src="https://imgur.com/P2NkQ7Q.png" height="35px">](https://databoy5000.github.io/project-1/)
+[<img alt="Follow databoy5000" src="https://imgur.com/QCKp4U4.png" height="35px">](https://github.com/login?return_to=%2Fdataboy5000)
+[<img alt="Project Repository" src="https://imgur.com/URAXZ08.png" height="35.5px">](https://github.com/databoy5000/project-1)
 
 ## Contents
 - [Overview](#overview)
 - [Brief](#brief)
+- [Live Demo, Useful Links](#live-demo-useful-links)
+- [Contents](#contents)
 - [Technologies used](#technologies-used)
 - [Approach](#approach)
   * [Board layout](#board-layout)
@@ -58,6 +57,14 @@ You can launch the game on GitHub pages [here](https://databoy5000.github.io/pro
 - [Possible Improvements](#possible-improvements)
 - [Lessons learned](#lessons-learned)
 - [Artwork and Credits](#artwork-and-credits)
+
+## Technologies used
+
+- HTML
+- CSS
+- JavaScript
+- Git and GitHub
+- Google Fonts
 
 ## Approach
 

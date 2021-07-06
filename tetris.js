@@ -9,7 +9,7 @@ console.log(
   '  title', ': \'Junior Software Engineer\',', '\n',
   '  github: \'https://github.com/databoy5000\',', '\n',
   '  linkedin: \'https://www.linkedin.com/in/anthonygdev/\',', '\n',
-  '  projectReadMe: \'https://github.com/databoy5000/project-4-client/blob/main/README.md\',', '\n',
+  '  projectReadMe: \'https://github.com/databoy5000/project-1\',', '\n',
   '}'
 )
 
