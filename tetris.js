@@ -1,8 +1,17 @@
-// ? I tried including the setInterval inside a while loop, but it ran some code infintely. I thought that the while loop wouldn't loop until the setInterval ...
-// ? 
-
-// ? some functions need global variables to work so I've put the variables on top of the script document (instead of functions being there first). Is this a problem?
-// ? I know functions are supposed to be on top of the script document. But what if you are modifying global variables with this function? Is it ok to have variables first and functions second? or should I call variables in as an argument instead?
+console.log(
+  '%c  -- GA Project: WoCRO --','font-weight: bold; font-size: 50px;color: red; text-shadow: 3px 3px 0 rgb(217,31,38) , 6px 6px 0 rgb(226,91,14) , 9px 9px 0 rgb(245,221,8) , 12px 12px 0 rgb(5,148,68) , 15px 15px 0 rgb(2,135,206) , 18px 18px 0 rgb(4,77,145) , 21px 21px 0 rgb(42,21,113)', '\n',
+  'Hi there, thanks for checking out this project.', '\n',
+  'I\'m currently looking for employement opportunities.', '\n',
+  'Feel free to get in touch if you\'d like to have a chat!', '\n',
+  '{', '\n',
+  '  name: \'Anthony Graham\',', '\n',
+  '  peopleCallMe: \'🐜\',', '\n',
+  '  title', ': \'Junior Software Engineer\',', '\n',
+  '  github: \'https://github.com/databoy5000\',', '\n',
+  '  linkedin: \'https://www.linkedin.com/in/anthonygdev/\',', '\n',
+  '  projectReadMe: \'https://github.com/databoy5000/project-4-client/blob/main/README.md\',', '\n',
+  '}'
+)
 
 // ! Other variables declaration
 const movements = ['down','left','right','skipDown']
@@ -34,7 +43,6 @@ let tuneIndex = 0
 // let hdPredictiveReferenceIndex
 // let hdPredictiveRotation
 
-// ? is it bad practice to update global variables in a function? would you rather pass the variable as an argument inside the function and re-assigne with the returned values? what would you do?
 // ! Global functions
 function generateNewShape(isCurrentShape) {
   const randomShapeIndex = Math.floor(Math.random() * shapesArray.length)
@@ -87,7 +95,6 @@ function moveShape(movementType,isRotation = false) {
 
   // ! Check that movementType is part of the list to direct flow towards the right conditional statements
   if (movements.includes(movementType) || isRotation) {
-    // ? In this case, is it wise to update a global variable (as opposed to entering this global variable into the function as an argument and returning it to have its value re-assigned to the variable in question)?
     // ! Update currentShape.currentReferenceIndex global variable
     if (movementType === movements[0]) {
       currentShape.currentReferenceIndex += width

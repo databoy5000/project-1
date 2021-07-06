@@ -38,6 +38,26 @@ You can launch the game on GitHub pages [here](https://databoy5000.github.io/pro
 - Git and GitHub
 - Google Fonts
 
+## Contents
+- [Overview](#overview)
+- [Brief](#brief)
+- [Technologies used](#technologies-used)
+- [Approach](#approach)
+  * [Board layout](#board-layout)
+  * [Data types](#data-types)
+  * [Game start, generating the current shape & the next shape](#game-start--generating-the-current-shape---the-next-shape)
+  * [Game timing](#game-timing)
+  * [Event listeners (click, keydown and change)](#event-listeners--click--keydown-and-change-)
+  * [Shape gravity](#shape-gravity)
+  * [Collision detection](#collision-detection)
+  * [Scoring](#scoring)
+  * [Modal](#modal)
+- [Screenshots](#screenshots)
+  * [In-game screen](#in-game-screen)
+  * [Game lost screen](#game-lost-screen)
+- [Possible Improvements](#possible-improvements)
+- [Lessons learned](#lessons-learned)
+- [Artwork and Credits](#artwork-and-credits)
 
 ## Approach
 
@@ -61,7 +81,7 @@ You can launch the game on GitHub pages [here](https://databoy5000.github.io/pro
 ### Board layout 
 Using the DOM to manipulate HTML, I've created a 10 (width) x 20 (height) of proportional div (cells) which are stored in an array, using a for loop to dynamically create all 200 cells.
 
-<img src="./screenshots/game_grid.png" alt="Basic Grid Display" width="200"/>
+<img src="https://imgur.com/Xz8diZs.png" alt="Basic Grid Display" width="200"/>
 
 ### Data types
 1. <ins>Shapes</ins>
@@ -192,10 +212,10 @@ Creating a modal was handy to display instructions and options (audio levels) fo
 ## Screenshots
 
 ### In-game screen
-![Image 1](/screenshots/spacetetris_ingame.png)
+![Gameplay screenshot](https://imgur.com/HqYnyNn.png)
 
 ### Game lost screen
-![Image 2](/screenshots/spacetetris_gamelost.png)
+![Game-over screenshot](https://imgur.com/DXaLQ9G.png)
 
 
 ## Possible Improvements
