@@ -1137,64 +1137,58 @@ window.addEventListener('keydown', function(e) {
 }, false)
 
 document.addEventListener('keydown', (event) => {
+  if (!pauseEventFunctions) {
   // ! If (upArrow key is pressed) && (the end of the shape.rotation() array is reached) {go back to the start of this array}
-  if (event.key === 'ArrowUp') {
-    if (!pauseEventFunctions) {
+    if (event.key === 'ArrowUp') {
       rotationBoundaryCheck()
     }
-  }
 
-  // ! If (downArrow key is pressed) && (the shape blocks are not on the last line) {drop the shape down}
-  if (event.key === 'ArrowDown') {
-    if (!pauseEventFunctions) {
+    // ! If (downArrow key is pressed) && (the shape blocks are not on the last line) {drop the shape down}
+    if (event.key === 'ArrowDown') {
       dropCheck(movements[0])
       playerScoring.scoringCalculation(true,false)
       elements.score.innerHTML = playerScoring.currentScore
     }
-  }
 
-  // ! If (leftArrow key is pressed) && (the shape blocks are not on the left edge) {move the shape left}
-  if (event.key === 'ArrowLeft') {
-    if (!pauseEventFunctions) {
+    // ! If (leftArrow key is pressed) && (the shape blocks are not on the left edge) {move the shape left}
+    if (event.key === 'ArrowLeft') {
       dropCheck(movements[1])
     }
-  }
 
-  // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
-  if (event.key === 'ArrowRight') {
-    if (!pauseEventFunctions) {
+    // ! If (rightArrow key is pressed) && (the shape blocks are not on the right edge) {move the shape right}
+    if (event.key === 'ArrowRight') {
       dropCheck(movements[2])
     }
+
+    // if (event.key === ' ') {
+    //   console.log('__inside space')
+    //   if (!pauseEventFunctions) {
+    //     console.log('__inside space')
+    //     hardDrop = true
+    //     removeCurrentClass(currentShape.currentRotation)
+    //     currentShape.currentReferenceIndex = hardDropPrediction(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
+    //     currentShape.currentRotation = currentShape.predictiveRotationCoordinates(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
+    //     console.log(currentShape.currentReferenceIndex)
+    //     console.log(currentShape.currentRotation)
+    //     currentShape.currentRotation.forEach( cellIndex => cells[cellIndex].classList.add('dead') )
+    //     dropNewShape = true
+    //   }
+    // }
+
+    // if (event.key === 'Shift') {
+    //   console.log('__inside shiftleft')
+    //   if (!pauseEventFunctions && !hardDrop) {
+    //     console.log('__inside shiftleft')
+    //     hdPredictiveReferenceIndex = hardDropPrediction(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
+    //     hdPredictiveRotation = currentShape.predictiveRotationCoordinates(hdPredictiveReferenceIndex,currentShape.currentRotationIndex)
+    //     console.log('predictiveRotation: ' + hdPredictiveRotation)
+    //     return hdPredictiveRotation.forEach( (cellIndex) => {
+    //       console.log('addingClass')
+    //       cells[cellIndex].classList.add(hdPredictionClass)
+    //     })
+    //   }
+    // }
   }
-
-  // if (event.key === ' ') {
-  //   console.log('__inside space')
-  //   if (!pauseEventFunctions) {
-  //     console.log('__inside space')
-  //     hardDrop = true
-  //     removeCurrentClass(currentShape.currentRotation)
-  //     currentShape.currentReferenceIndex = hardDropPrediction(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
-  //     currentShape.currentRotation = currentShape.predictiveRotationCoordinates(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
-  //     console.log(currentShape.currentReferenceIndex)
-  //     console.log(currentShape.currentRotation)
-  //     currentShape.currentRotation.forEach( cellIndex => cells[cellIndex].classList.add('dead') )
-  //     dropNewShape = true
-  //   }
-  // }
-
-  // if (event.key === 'Shift') {
-  //   console.log('__inside shiftleft')
-  //   if (!pauseEventFunctions && !hardDrop) {
-  //     console.log('__inside shiftleft')
-  //     hdPredictiveReferenceIndex = hardDropPrediction(currentShape.currentReferenceIndex,currentShape.currentRotationIndex)
-  //     hdPredictiveRotation = currentShape.predictiveRotationCoordinates(hdPredictiveReferenceIndex,currentShape.currentRotationIndex)
-  //     console.log('predictiveRotation: ' + hdPredictiveRotation)
-  //     return hdPredictiveRotation.forEach( (cellIndex) => {
-  //       console.log('addingClass')
-  //       cells[cellIndex].classList.add(hdPredictionClass)
-  //     })
-  //   }
-  // }
 })
 
 // document.addEventListener('keyup', (event) => {
